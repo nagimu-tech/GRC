@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Должности{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Должности</h1>
+    {% if user.is_system_admin %}
+    <a href="{% url 'catalog:position_create' %}" class="btn btn-primary">+ Добавить</a>
+    {% endif %}
+</div>
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Название</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Описание</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Статус</th>
+                {% if user.is_system_admin %}<th class="px-4 py-3"></th>{% endif %}
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for position in positions %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 font-medium">{{ position.name }}</td>
+                <td class="px-4 py-3 text-sm text-gray-500 hidden sm:table-cell truncate max-w-xs">{{ position.description|default:"—" }}</td>
+                <td class="px-4 py-3">
+                    {% if position.is_active %}
+                    <span class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800">Активна</span>
+                    {% else %}
+                    <span class="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">Неактивна</span>
+                    {% endif %}
+                </td>
+                {% if user.is_system_admin %}
+                <td class="px-4 py-3 text-right space-x-2">
+                    <a href="{% url 'catalog:position_update' position.pk %}" class="text-indigo-600 hover:underline text-sm">Изменить</a>
+                    <a href="{% url 'catalog:position_delete' position.pk %}" class="text-red-500 hover:underline text-sm">Удалить</a>
+                </td>
+                {% endif %}
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" class="px-4 py-8 text-center text-gray-400">Должностей пока нет</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Удалить должность{% endblock %}
+{% block content %}
+<div class="max-w-md">
+    <h1 class="text-2xl font-bold text-gray-800 mb-4">Удалить должность?</h1>
+    <p class="text-gray-600 mb-6">Вы уверены, что хотите удалить должность <strong>{{ object.name }}</strong>?</p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="flex gap-3">
+            <button type="submit" class="btn btn-danger">Удалить</button>
+            <a href="{% url 'catalog:position_list' %}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

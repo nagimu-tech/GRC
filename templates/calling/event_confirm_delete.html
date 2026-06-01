@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block title %}Удалить встречу{% endblock %}
+{% block content %}
+<div class="max-w-md">
+    <h1 class="text-2xl font-bold text-gray-800 mb-4">Удалить встречу?</h1>
+    <p class="text-gray-600 mb-6">Вы уверены, что хотите удалить встречу <strong>{{ object.title }}</strong>? Все отметки прозвона будут удалены.</p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="flex gap-3">
+            <button type="submit" class="btn btn-danger">Удалить</button>
+            <a href="{% url 'calling:event_list' %}" class="btn btn-secondary">Отмена</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

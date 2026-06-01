@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block title %}{{ session.label }}{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <div class="flex items-center">
+        <a href="{% url 'catalog:course_detail' session.course.pk %}" class="text-gray-400 hover:text-gray-600 mr-3">←</a>
+        <div>
+            <p class="text-sm text-gray-400">{{ session.course.name }}</p>
+            <h1 class="text-2xl font-bold text-gray-800">{{ session.label }}</h1>
+            <p class="text-sm text-gray-500">{{ session.date_range }} · {{ session.get_location_format_display }}</p>
+        </div>
+    </div>
+    {% if user.is_company_admin or user.is_system_admin %}
+    <div class="flex gap-2">
+        <a href="{% url 'participation:create' %}?session={{ session.pk }}" class="btn btn-secondary text-sm">+ Участник</a>
+        <a href="{% url 'catalog:session_update' session.pk %}" class="btn btn-primary text-sm">Изменить</a>
+    </div>
+    {% endif %}
+</div>
+
+{% regroup participations by get_role_display as role_groups %}
+{% for role_group in role_groups %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden mb-4">
+    <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
+        <h2 class="font-semibold text-gray-700">{{ role_group.grouper }} ({{ role_group.list|length }})</h2>
+    </div>
+    <ul class="divide-y divide-gray-100">
+        {% for p in role_group.list %}
+        <li class="px-4 py-3 flex items-center justify-between hover:bg-gray-50">
+            <div>
+                <a href="{% url 'people:companyperson_detail' p.company_person.pk %}" class="font-medium text-indigo-700 hover:underline">
+                    {{ p.company_person.full_name }}
+                </a>
+                {% if p.chosen_position %}<span class="ml-2 text-xs text-gray-400">{{ p.chosen_position }}</span>{% endif %}
+            </div>
+            {% if user.is_company_admin or user.is_system_admin %}
+            <div class="flex gap-2 text-sm">
+                <a href="{% url 'participation:update' p.pk %}" class="text-indigo-600 hover:underline">Изменить</a>
+                <a href="{% url 'participation:delete' p.pk %}" class="text-red-500 hover:underline">Удалить</a>
+            </div>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% empty %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center text-gray-400">
+    Участников пока нет. <a href="{% url 'participation:create' %}?session={{ session.pk }}" class="text-indigo-600 hover:underline">Добавить</a>
+</div>
+{% endfor %}
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block title %}Компании{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Компании</h1>
+    <a href="{% url 'accounts:company_create' %}" class="btn btn-primary">+ Добавить</a>
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Название</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Телефон</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Пользователи</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Статус</th>
+                <th class="px-4 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for company in companies %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3 font-medium">{{ company.name }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 hidden sm:table-cell">{{ company.phone|default:"—" }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 hidden sm:table-cell">{{ company.users_count }}</td>
+                <td class="px-4 py-3">
+                    {% if company.is_active %}
+                        <span class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-800">Активна</span>
+                    {% else %}
+                        <span class="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">Неактивна</span>
+                    {% endif %}
+                </td>
+                <td class="px-4 py-3 text-right">
+                    <a href="{% url 'accounts:company_update' company.pk %}" class="text-indigo-600 hover:underline text-sm">Редактировать</a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">Компаний пока нет</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

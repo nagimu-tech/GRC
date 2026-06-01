@@ -1,0 +1,74 @@
+services:
+  db:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-grc_db}
+      POSTGRES_USER: ${POSTGRES_USER:-grc_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-grc_user} -d ${POSTGRES_DB:-grc_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  web:
+    build: .
+    restart: always
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py collectstatic --noinput &&
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3"
+    volumes:
+      - static_volume:/app/staticfiles
+    expose:
+      - 8000
+    env_file:
+      - .env
+    environment:
+      - DJANGO_SETTINGS_MODULE=config.settings.prod
+    depends_on:
+      db:
+        condition: service_healthy
+
+  proxy:
+    image: caddy:2
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+      - static_volume:/app/staticfiles:ro
+    depends_on:
+      - web
+
+  backup:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-grc_db}
+      POSTGRES_USER: ${POSTGRES_USER:-grc_user}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - backup_volume:/backups
+    entrypoint: >
+      sh -c "while true; do
+        pg_dump -h db -U $$POSTGRES_USER $$POSTGRES_DB | gzip > /backups/backup_$$(date +%Y%m%d_%H%M%S).sql.gz;
+        find /backups -name '*.sql.gz' -mtime +7 -delete;
+        sleep 86400;
+      done"
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  static_volume:
+  caddy_data:
+  caddy_config:
+  backup_volume:

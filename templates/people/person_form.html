@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}Редактировать данные человека{% endblock %}
+{% block content %}
+<div class="max-w-lg">
+    <div class="flex items-center mb-6">
+        <a href="{% url 'people:person_list' %}" class="text-gray-400 hover:text-gray-600 mr-3">←</a>
+        <h1 class="text-2xl font-bold text-gray-800">Редактировать данные человека</h1>
+    </div>
+    <div class="mb-4 p-3 bg-yellow-50 rounded text-sm text-yellow-800">
+        Внимание: этот человек может быть связан с несколькими компаниями. Изменения отразятся во всех компаниях.
+    </div>
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <form method="post">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="mb-4">
+                <label class="block text-sm font-medium text-gray-700 mb-1">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}<p class="mt-1 text-xs text-red-600">{{ field.errors|join:", " }}</p>{% endif %}
+            </div>
+            {% endfor %}
+            <div class="flex gap-3 mt-6">
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+                <a href="{% url 'people:person_list' %}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

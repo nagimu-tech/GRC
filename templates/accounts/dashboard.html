@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+<div class="mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">
+        {% if active_company %}{{ active_company.name }}{% else %}Добро пожаловать{% endif %}
+    </h1>
+    <p class="text-gray-500 text-sm mt-1">{{ user.display_role }}</p>
+</div>
+
+{% if active_company %}
+<!-- Сводка -->
+<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+        <p class="text-3xl font-bold text-indigo-600">{{ people_count }}</p>
+        <p class="text-sm text-gray-500 mt-1">Людей</p>
+        <a href="{% url 'people:companyperson_list' %}" class="text-xs text-indigo-600 hover:underline mt-2 block">Перейти →</a>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+        <p class="text-3xl font-bold text-green-600">{{ courses_count }}</p>
+        <p class="text-sm text-gray-500 mt-1">Курсов</p>
+        <a href="{% url 'catalog:course_list' %}" class="text-xs text-green-600 hover:underline mt-2 block">Перейти →</a>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+        <p class="text-3xl font-bold text-blue-600">{{ sessions_count }}</p>
+        <p class="text-sm text-gray-500 mt-1">Запусков</p>
+    </div>
+    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
+        <p class="text-3xl font-bold text-orange-600">{{ active_events|length }}</p>
+        <p class="text-sm text-gray-500 mt-1">Активных прозвонов</p>
+        <a href="{% url 'calling:event_list' %}" class="text-xs text-orange-600 hover:underline mt-2 block">Перейти →</a>
+    </div>
+</div>
+
+{% if active_events %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
+    <h2 class="font-semibold text-gray-700 mb-3">Активные прозвоны</h2>
+    <ul class="divide-y divide-gray-100">
+        {% for event in active_events %}
+        <li class="py-3 flex items-center justify-between">
+            <div>
+                <p class="font-medium text-gray-800">{{ event.title }}</p>
+                <p class="text-xs text-gray-400">{% if event.date %}{{ event.date|date:"d.m.Y" }}{% endif %}{% if event.course %} · {{ event.course.name }}{% endif %}</p>
+            </div>
+            <a href="{% url 'calling:session' event.pk %}" class="btn btn-primary text-xs py-1.5">
+                Перейти к прозвону
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
+{% else %}
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
+    {% if user.is_system_admin %}
+        <p class="text-gray-500 mb-4">Выберите активную компанию для работы с данными.</p>
+        <a href="{% url 'accounts:switch_company' %}" class="btn btn-primary">Выбрать компанию</a>
+    {% else %}
+        <p class="text-gray-500">Ваш аккаунт не привязан к компании. Обратитесь к администратору.</p>
+    {% endif %}
+</div>
+{% endif %}
+{% endblock %}

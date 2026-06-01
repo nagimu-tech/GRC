@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %}Прозвон: {{ event.title }}{% endblock %}
+
+{% block content %}
+<!-- Заголовок -->
+<div class="mb-4">
+    <div class="flex items-center justify-between">
+        <div class="flex items-center">
+            <a href="{% url 'calling:event_list' %}" class="text-gray-400 hover:text-gray-600 mr-3">←</a>
+            <div>
+                <h1 class="text-xl font-bold text-gray-800">{{ event.title }}</h1>
+                {% if event.date %}<p class="text-xs text-gray-400">{{ event.date|date:"d.m.Y" }}</p>{% endif %}
+            </div>
+        </div>
+        {% if user.is_company_admin or user.is_system_admin %}
+        <div class="flex gap-2">
+            <form method="post" action="{% url 'calling:init_records' event.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-secondary text-xs">Обновить пул</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Фильтры и поиск -->
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm p-3 mb-4 space-y-2">
+    <form method="get" class="flex flex-wrap gap-2 items-center" id="filter-form">
+        <!-- Поиск -->
+        <input type="text" name="q" value="{{ search_query }}"
+            placeholder="Поиск по имени…"
+            class="flex-1 min-w-0 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+
+        <!-- Фильтр по курсу -->
+        <select name="course" class="px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="">Все курсы</option>
+            {% for course in available_courses %}
+            <option value="{{ course.pk }}" {% if selected_course == course.pk|stringformat:"s" %}selected{% endif %}>{{ course.name }}</option>
+            {% endfor %}
+        </select>
+
+        <button type="submit" class="btn btn-secondary text-sm">Применить</button>
+
+        <!-- Переключатель: доступные / мои -->
+        <a href="?{% if show_mine %}{% else %}mine=1{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}{% if selected_course %}&course={{ selected_course }}{% endif %}"
+           class="btn text-sm {% if show_mine %}btn-primary{% else %}btn-secondary{% endif %}">
+            {% if show_mine %}Мои отметки{% else %}Доступный пул{% endif %}
+        </a>
+    </form>
+</div>
+
+<!-- Легенда статусов -->
+<div class="flex flex-wrap gap-1.5 mb-4 text-xs">
+    {% for status_code, status_label in statuses %}
+    <span class="px-2 py-0.5 rounded-full
+        {% if status_code == 'NOT_CALLED' %}bg-gray-100 text-gray-600
+        {% elif status_code == 'WILL_COME' %}bg-green-100 text-green-800
+        {% elif status_code == 'WONT_COME' %}bg-red-100 text-red-800
+        {% elif status_code == 'MAYBE' %}bg-yellow-100 text-yellow-800
+        {% elif status_code == 'NO_ANSWER' %}bg-orange-100 text-orange-800
+        {% endif %}">{{ status_label }}</span>
+    {% endfor %}
+</div>
+
+<!-- Список записей прозвона -->
+<div class="space-y-2" id="call-records-list">
+    {% for record in records %}
+        {% include "calling/_call_record_row.html" with record=record update_form=update_form %}
+    {% empty %}
+    <div class="bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-400">
+        {% if show_mine %}У вас нет захваченных записей{% else %}Доступных для прозвона людей нет{% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

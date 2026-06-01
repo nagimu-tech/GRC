@@ -1,0 +1,40 @@
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+.env
+.env.local
+.venv/
+venv/
+env/
+
+*.sqlite3
+*.db
+
+staticfiles/
+media/
+
+.DS_Store
+*.log
+
+node_modules/
+dist/
+build/
+
+# Docker
+.dockerignore
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Local assistant/tool state
+.ai/
+.claude/
+
+# Secrets
+.env.prod
+.env.production

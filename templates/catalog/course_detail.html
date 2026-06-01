@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}{{ course.name }}{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <div class="flex items-center">
+        <a href="{% url 'catalog:course_list' %}" class="text-gray-400 hover:text-gray-600 mr-3">←</a>
+        <div>
+            <h1 class="text-2xl font-bold text-gray-800">{{ course.name }}</h1>
+            {% if course.description %}<p class="text-sm text-gray-500 mt-1">{{ course.description }}</p>{% endif %}
+        </div>
+    </div>
+    {% if user.is_company_admin or user.is_system_admin %}
+    <div class="flex gap-2">
+        <a href="{% url 'catalog:session_create' %}?course={{ course.pk }}" class="btn btn-secondary text-sm">+ Запуск</a>
+        <a href="{% url 'catalog:course_update' course.pk %}" class="btn btn-primary text-sm">Изменить</a>
+    </div>
+    {% endif %}
+</div>
+
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="px-4 py-3 border-b border-gray-100 bg-gray-50">
+        <h2 class="font-semibold text-gray-700">Запуски курса ({{ sessions|length }})</h2>
+    </div>
+    <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+            <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Поток</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Даты</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Формат</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Участников</th>
+                <th class="px-4 py-3"></th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100">
+            {% for session in sessions %}
+            <tr class="hover:bg-gray-50">
+                <td class="px-4 py-3">
+                    <a href="{% url 'catalog:session_detail' session.pk %}" class="font-medium text-indigo-700 hover:underline">{{ session.label }}</a>
+                </td>
+                <td class="px-4 py-3 text-sm text-gray-600 hidden sm:table-cell">{{ session.date_range }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 hidden sm:table-cell">{{ session.get_location_format_display }}</td>
+                <td class="px-4 py-3 text-sm text-gray-600 hidden sm:table-cell">{{ session.participations.count }}</td>
+                <td class="px-4 py-3 text-right space-x-2">
+                    <a href="{% url 'catalog:session_detail' session.pk %}" class="text-sm text-gray-500 hover:text-indigo-700">Открыть</a>
+                    {% if user.is_company_admin or user.is_system_admin %}
+                    <a href="{% url 'catalog:session_update' session.pk %}" class="text-sm text-indigo-600 hover:underline">Изменить</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">Запусков пока нет</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

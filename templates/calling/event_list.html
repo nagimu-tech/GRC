@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Прозвоны{% endblock %}
+{% block content %}
+<div class="flex items-center justify-between mb-6">
+    <h1 class="text-2xl font-bold text-gray-800">Встречи и прозвоны</h1>
+    {% if user.is_company_admin or user.is_system_admin %}
+    <a href="{% url 'calling:event_create' %}" class="btn btn-primary">+ Создать</a>
+    {% endif %}
+</div>
+
+<div class="space-y-3">
+    {% for event in events %}
+    <div class="bg-white rounded-xl shadow-sm border {% if event.is_active %}border-orange-200{% else %}border-gray-100{% endif %} p-4">
+        <div class="flex items-start justify-between">
+            <div class="flex-1">
+                <div class="flex items-center gap-2">
+                    <h2 class="font-semibold text-gray-800">{{ event.title }}</h2>
+                    {% if event.is_active %}
+                    <span class="px-2 py-0.5 text-xs rounded-full bg-orange-100 text-orange-800">Активна</span>
+                    {% else %}
+                    <span class="px-2 py-0.5 text-xs rounded-full bg-gray-100 text-gray-600">Завершена</span>
+                    {% endif %}
+                </div>
+                <div class="text-sm text-gray-500 mt-1 flex flex-wrap gap-3">
+                    {% if event.date %}<span>📅 {{ event.date|date:"d.m.Y" }}</span>{% endif %}
+                    {% if event.course %}<span>📚 {{ event.course.name }}</span>{% endif %}
+                    {% if event.location %}<span>📍 {{ event.location }}</span>{% endif %}
+                </div>
+                {% if event.notes %}<p class="text-xs text-gray-400 mt-1">{{ event.notes|truncatechars:100 }}</p>{% endif %}
+            </div>
+            <div class="flex gap-2 flex-shrink-0 ml-4">
+                {% if event.is_active %}
+                <a href="{% url 'calling:session' event.pk %}" class="btn btn-primary text-sm">
+                    Начать прозвон
+                </a>
+                {% else %}
+                <a href="{% url 'calling:session' event.pk %}" class="btn btn-secondary text-sm">
+                    Просмотр
+                </a>
+                {% endif %}
+                {% if user.is_company_admin or user.is_system_admin %}
+                <a href="{% url 'calling:event_update' event.pk %}" class="btn btn-secondary text-sm">Изм.</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center text-gray-400">
+        Встреч пока нет
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
