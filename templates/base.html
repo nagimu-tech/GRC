@@ -96,6 +96,21 @@
         </a>
     </div>
 
+    <nav class="grc-mobile-nav grc-glass" aria-label="Основная навигация">
+        <a href="{% url 'accounts:dashboard' %}" class="{% if request.resolver_match.app_name == 'accounts' and request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}">Обзор</a>
+        <a href="{% url 'people:companyperson_list' %}" class="{% if request.resolver_match.app_name == 'people' and request.resolver_match.url_name != 'merge_candidates' %}is-active{% endif %}">Люди</a>
+        <a href="{% url 'catalog:course_list' %}" class="{% if request.resolver_match.app_name == 'catalog' and 'position' not in request.resolver_match.url_name %}is-active{% endif %}">Курсы</a>
+        <a href="{% url 'calling:event_list' %}" class="{% if request.resolver_match.app_name == 'calling' %}is-active{% endif %}">Прозвон</a>
+        {% if user.is_system_admin or user.is_company_admin %}
+            <a href="{% url 'catalog:position_list' %}" class="{% if request.resolver_match.app_name == 'catalog' and 'position' in request.resolver_match.url_name %}is-active{% endif %}">Должности</a>
+            <a href="{% url 'accounts:user_list' %}" class="{% if request.resolver_match.app_name == 'accounts' and 'user' in request.resolver_match.url_name %}is-active{% endif %}">Пользователи</a>
+        {% endif %}
+        {% if user.is_system_admin %}
+            <a href="{% url 'accounts:company_list' %}" class="{% if request.resolver_match.app_name == 'accounts' and 'company' in request.resolver_match.url_name %}is-active{% endif %}">Компании</a>
+            <a href="{% url 'people:merge_candidates' %}" class="{% if request.resolver_match.app_name == 'people' and request.resolver_match.url_name == 'merge_candidates' %}is-active{% endif %}">Сопоставление</a>
+        {% endif %}
+    </nav>
+
     <header class="grc-topbar">
         <form class="grc-search grc-glass" method="get" action="{% url 'people:companyperson_list' %}">
             <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.2-3.2"></path></svg>

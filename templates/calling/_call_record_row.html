@@ -41,6 +41,12 @@
                 {% endif %}
             </span>
             {% endif %}
+            {% if can_manage_call_pool %}
+            <form method="post" action="{% url 'calling:delete_record' record.pk %}" class="flex-shrink-0">
+                {% csrf_token %}
+                <button type="submit" class="text-xs text-red-500 hover:underline">Удалить</button>
+            </form>
+            {% endif %}
         </div>
 
         <!-- Форма обновления статуса (если запись захвачена текущим пользователем или admin) -->

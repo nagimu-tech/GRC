@@ -39,15 +39,26 @@ class UserCreateForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ["username", "first_name", "last_name", "email", "role", "company"]
+        fields = ["username", "first_name", "last_name", "email", "person", "role", "company"]
         labels = {
             "username": "Логин",
             "first_name": "Имя",
             "last_name": "Фамилия",
             "email": "Email",
+            "person": "Связанный человек",
             "role": "Роль",
             "company": "Компания",
         }
+
+    def __init__(self, *args, company=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        from apps.people.models import Person
+
+        persons = Person.objects.select_related("user_account").order_by("last_name", "first_name")
+        if company:
+            persons = persons.filter(company_persons__company=company).distinct()
+        self.fields["person"].queryset = persons
+        self.fields["person"].required = False
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -60,15 +71,26 @@ class UserCreateForm(forms.ModelForm):
 class UserUpdateForm(forms.ModelForm):
     class Meta:
         model = User
-        fields = ["username", "first_name", "last_name", "email", "role", "is_active"]
+        fields = ["username", "first_name", "last_name", "email", "person", "role", "is_active"]
         labels = {
             "username": "Логин",
             "first_name": "Имя",
             "last_name": "Фамилия",
             "email": "Email",
+            "person": "Связанный человек",
             "role": "Роль",
             "is_active": "Активен",
         }
+
+    def __init__(self, *args, company=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        from apps.people.models import Person
+
+        persons = Person.objects.order_by("last_name", "first_name")
+        if company:
+            persons = persons.filter(company_persons__company=company).distinct()
+        self.fields["person"].queryset = persons
+        self.fields["person"].required = False
 
 
 class CompanyUserCreateForm(forms.ModelForm):
@@ -81,13 +103,28 @@ class CompanyUserCreateForm(forms.ModelForm):
 
     class Meta:
         model = User
-        fields = ["username", "first_name", "last_name", "email"]
+        fields = ["username", "first_name", "last_name", "email", "person"]
         labels = {
             "username": "Логин",
             "first_name": "Имя",
             "last_name": "Фамилия",
             "email": "Email",
+            "person": "Связанный человек",
         }
+
+    def __init__(self, *args, company=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        from apps.people.models import Person
+
+        self.fields["person"].queryset = (
+            Person.objects
+            .filter(company_persons__company=company)
+            .distinct()
+            .order_by("last_name", "first_name")
+            if company
+            else Person.objects.none()
+        )
+        self.fields["person"].required = False
 
     def save(self, commit=True):
         user = super().save(commit=False)

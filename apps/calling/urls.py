@@ -10,8 +10,10 @@ urlpatterns = [
     path("events/<int:pk>/delete/", views.EventDeleteView.as_view(), name="event_delete"),
     path("events/<int:pk>/session/", views.CallingSessionView.as_view(), name="session"),
     path("events/<int:pk>/init/", views.InitCallRecordsView.as_view(), name="init_records"),
+    path("events/<int:pk>/records/add/", views.AddCallRecordView.as_view(), name="add_record"),
 
     # HTMX endpoints
     path("records/<int:pk>/claim/", views.ClaimCallRecordView.as_view(), name="claim_record"),
     path("records/<int:pk>/update/", views.UpdateCallRecordView.as_view(), name="update_record"),
+    path("records/<int:pk>/delete/", views.DeleteCallRecordView.as_view(), name="delete_record"),
 ]

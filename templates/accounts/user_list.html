@@ -12,6 +12,7 @@
         <thead class="bg-gray-50">
             <tr>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Пользователь</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden md:table-cell">Человек</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase hidden sm:table-cell">Компания</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Роль</th>
                 <th class="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Статус</th>
@@ -25,6 +26,7 @@
                     <p class="font-medium">{{ u.get_full_name|default:u.username }}</p>
                     <p class="text-xs text-gray-400">{{ u.username }}</p>
                 </td>
+                <td class="px-4 py-3 text-sm text-gray-600 hidden md:table-cell">{{ u.person|default:"—" }}</td>
                 <td class="px-4 py-3 text-sm text-gray-600 hidden sm:table-cell">{{ u.company|default:"—" }}</td>
                 <td class="px-4 py-3">
                     <span class="px-2 py-0.5 text-xs rounded-full {{ u.role|role_badge_class }}">{{ u.display_role }}</span>
@@ -49,7 +51,7 @@
                 </td>
             </tr>
             {% empty %}
-            <tr><td colspan="5" class="px-4 py-8 text-center text-gray-400">Пользователей пока нет</td></tr>
+            <tr><td colspan="6" class="px-4 py-8 text-center text-gray-400">Пользователей пока нет</td></tr>
             {% endfor %}
         </tbody>
     </table>

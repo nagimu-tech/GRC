@@ -85,7 +85,7 @@ class UserListView(CompanyAdminRequiredMixin, ListView):
     context_object_name = "users"
 
     def get_queryset(self):
-        qs = User.objects.select_related("company").order_by("last_name", "first_name")
+        qs = User.objects.select_related("company", "person").order_by("last_name", "first_name")
         if not self.request.user.is_system_admin:
             qs = qs.filter(company=self.request.company)
         return qs
@@ -100,6 +100,12 @@ class UserCreateView(CompanyAdminRequiredMixin, CreateView):
         if self.request.user.is_system_admin:
             return UserCreateForm
         return CompanyUserCreateForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        if not self.request.user.is_system_admin:
+            kwargs["company"] = self.request.company
+        return kwargs
 
     def form_valid(self, form):
         user = form.save(commit=False)
@@ -118,6 +124,12 @@ class UserUpdateView(CompanyAdminRequiredMixin, UpdateView):
 
     def get_form_class(self):
         return UserUpdateForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        if not self.request.user.is_system_admin:
+            kwargs["company"] = self.request.company
+        return kwargs
 
     def get_object(self):
         obj = get_object_or_404(User, pk=self.kwargs["pk"])

@@ -1,7 +1,7 @@
 from django import forms
 from .models import Event, CallRecord
 from apps.catalog.models import Course
-from apps.accounts.models import User
+from apps.people.models import CompanyPerson
 
 
 class EventForm(forms.ModelForm):
@@ -29,10 +29,41 @@ class EventForm(forms.ModelForm):
             self.fields["course"].queryset = Course.objects.filter(
                 company=company, is_active=True
             )
-            self.fields["assigned_callers"].queryset = User.objects.filter(
-                company=company, is_active=True, role=User.CALLER
+            selected_course_id = self.data.get("course") or getattr(self.instance, "course_id", None)
+            callers = CompanyPerson.objects.filter(
+                company=company,
+                is_active=True,
+                participations__role="ASSISTANT",
+            )
+            if selected_course_id:
+                callers = callers.filter(participations__session__course_id=selected_course_id)
+            if self.instance and self.instance.pk:
+                callers = callers | self.instance.assigned_callers.all()
+            self.fields["assigned_callers"].queryset = (
+                callers.select_related("person").distinct().order_by("person__last_name", "person__first_name")
             )
         self.fields["course"].required = False
+
+
+class CallRecordPersonForm(forms.Form):
+    company_person = forms.ModelChoiceField(
+        label="Добавить человека",
+        queryset=CompanyPerson.objects.none(),
+    )
+
+    def __init__(self, *args, company=None, event=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        queryset = CompanyPerson.objects.none()
+        if company and event:
+            existing_ids = event.call_records.values_list("company_person_id", flat=True)
+            queryset = (
+                CompanyPerson.objects
+                .filter(company=company, is_active=True)
+                .exclude(pk__in=existing_ids)
+                .select_related("person")
+                .order_by("person__last_name", "person__first_name")
+            )
+        self.fields["company_person"].queryset = queryset
 
 
 class CallRecordUpdateForm(forms.ModelForm):

@@ -105,11 +105,19 @@ class CompanyPersonUpdateView(TenantObjectMixin, CompanyAdminRequiredMixin, Upda
             return CompanyPerson.objects.all()
         return CompanyPerson.objects.filter(company=self.request.company)
 
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs["user"] = self.request.user
+        kwargs["current_company"] = self.request.company
+        return kwargs
+
     def form_valid(self, form):
         messages.success(self.request, "Карточка обновлена.")
         return super().form_valid(form)
 
     def get_success_url(self):
+        if self.object.company_id is None and not self.request.user.is_system_admin:
+            return reverse_lazy("people:companyperson_list")
         return reverse_lazy("people:companyperson_detail", kwargs={"pk": self.object.pk})
 
     def get_context_data(self, **kwargs):

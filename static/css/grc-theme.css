@@ -651,6 +651,10 @@ textarea:focus {
     display: none;
 }
 
+.grc-mobile-nav {
+    display: none;
+}
+
 .grc-scroll::-webkit-scrollbar {
     width: 10px;
     height: 10px;
@@ -756,6 +760,38 @@ textarea:focus {
         gap: 12px;
     }
 
+    .grc-mobile-nav {
+        display: flex;
+        width: 100%;
+        max-width: 100%;
+        min-width: 0;
+        gap: 8px;
+        overflow-x: auto;
+        padding: 8px;
+        border-radius: 15px;
+        scroll-padding-inline: 8px;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .grc-mobile-nav a {
+        display: inline-flex;
+        min-height: 36px;
+        flex: none;
+        align-items: center;
+        border-radius: 11px;
+        padding: 0 12px;
+        color: var(--grc-text-dim);
+        font-size: 13px;
+        font-weight: 800;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+
+    .grc-mobile-nav a.is-active {
+        color: var(--grc-text);
+        background: var(--grc-accent-soft);
+    }
+
     .grc-main {
         overflow: visible;
         padding-right: 0;
@@ -788,5 +824,32 @@ textarea:focus {
 
     .grc-topbar .grc-chip span {
         display: none;
+    }
+
+    .grc-topbar {
+        gap: 10px;
+    }
+
+    .grc-search {
+        height: 46px;
+        padding: 0 13px;
+    }
+
+    .grc-search .grc-kbd {
+        display: none;
+    }
+
+    .grc-icon-button {
+        width: 44px;
+        height: 44px;
+    }
+
+    .btn,
+    .btn-primary,
+    .btn-secondary,
+    .btn-danger,
+    .grc-button {
+        min-height: 38px;
+        padding: 0 12px;
     }
 }

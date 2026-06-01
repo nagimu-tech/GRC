@@ -4,24 +4,42 @@
 {% block content %}
 <!-- Заголовок -->
 <div class="mb-4">
-    <div class="flex items-center justify-between">
-        <div class="flex items-center">
+    <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex items-center min-w-0">
             <a href="{% url 'calling:event_list' %}" class="text-gray-400 hover:text-gray-600 mr-3">←</a>
-            <div>
+            <div class="min-w-0">
                 <h1 class="text-xl font-bold text-gray-800">{{ event.title }}</h1>
                 {% if event.date %}<p class="text-xs text-gray-400">{{ event.date|date:"d.m.Y" }}</p>{% endif %}
             </div>
         </div>
-        {% if user.is_company_admin or user.is_system_admin %}
-        <div class="flex gap-2">
+        {% if can_manage_call_pool %}
+        <div class="flex flex-wrap gap-2">
             <form method="post" action="{% url 'calling:init_records' event.pk %}">
                 {% csrf_token %}
-                <button type="submit" class="btn btn-secondary text-xs">Обновить пул</button>
+                <button type="submit" class="btn btn-primary text-xs">Заполнить</button>
             </form>
         </div>
         {% endif %}
     </div>
 </div>
+
+{% if can_manage_call_pool %}
+<div class="bg-white rounded-xl border border-gray-100 shadow-sm p-3 mb-4">
+    <form method="post" action="{% url 'calling:add_record' event.pk %}" class="flex flex-col gap-2 sm:flex-row sm:items-end">
+        {% csrf_token %}
+        <div class="flex-1 min-w-0">
+            <label class="block text-xs font-medium text-gray-500 mb-1" for="{{ add_record_form.company_person.id_for_label }}">
+                {{ add_record_form.company_person.label }}
+            </label>
+            {{ add_record_form.company_person }}
+            {% if add_record_form.company_person.errors %}
+                <p class="mt-1 text-xs text-red-600">{{ add_record_form.company_person.errors|join:", " }}</p>
+            {% endif %}
+        </div>
+        <button type="submit" class="btn btn-secondary text-sm">Добавить вручную</button>
+    </form>
+</div>
+{% endif %}
 
 <!-- Фильтры и поиск -->
 <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-3 mb-4 space-y-2">
@@ -65,7 +83,7 @@
 <!-- Список записей прозвона -->
 <div class="space-y-2" id="call-records-list">
     {% for record in records %}
-        {% include "calling/_call_record_row.html" with record=record update_form=update_form %}
+        {% include "calling/_call_record_row.html" with record=record update_form=update_form can_manage_call_pool=can_manage_call_pool %}
     {% empty %}
     <div class="bg-white rounded-xl border border-gray-100 p-8 text-center text-gray-400">
         {% if show_mine %}У вас нет захваченных записей{% else %}Доступных для прозвона людей нет{% endif %}

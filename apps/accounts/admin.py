@@ -12,11 +12,11 @@ class CompanyAdmin(admin.ModelAdmin):
 
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
-    list_display = ["username", "get_full_name", "company", "role", "is_active"]
+    list_display = ["username", "get_full_name", "person", "company", "role", "is_active"]
     list_filter = ["role", "company", "is_active"]
     fieldsets = UserAdmin.fieldsets + (
-        ("GRC", {"fields": ("company", "role")}),
+        ("GRC", {"fields": ("person", "company", "role")}),
     )
     add_fieldsets = UserAdmin.add_fieldsets + (
-        ("GRC", {"fields": ("company", "role")}),
+        ("GRC", {"fields": ("person", "company", "role")}),
     )

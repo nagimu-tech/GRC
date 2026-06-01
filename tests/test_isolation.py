@@ -5,6 +5,7 @@
 """
 from django.test import TestCase, Client
 from django.urls import reverse
+from datetime import date
 
 from apps.accounts.models import Company, User
 from apps.catalog.models import Course, CourseSession
@@ -101,6 +102,23 @@ class TenantIsolationPeopleTest(TestCase):
         )
         self.assertIn(response.status_code, [403, 404])
 
+    def test_company_admin_can_clear_person_company(self):
+        """Карточку человека можно оставить без компании из пользовательского интерфейса."""
+        self.client.force_login(self.admin_a)
+        response = self.client.post(
+            reverse("people:companyperson_update", args=[self.cp_a.pk]),
+            {
+                "company": "",
+                "notes": "Без компании",
+                "consent_stored": "on",
+                "consent_contact": "on",
+                "is_active": "on",
+            },
+        )
+        self.assertEqual(response.status_code, 302)
+        self.cp_a.refresh_from_db()
+        self.assertIsNone(self.cp_a.company)
+
 
 class TenantIsolationCallingTest(TestCase):
     def setUp(self):
@@ -157,14 +175,20 @@ class SystemAdminAccessTest(TestCase):
 class CallerAccessTest(TestCase):
     def setUp(self):
         self.company = make_company("Компания")
+        self.person = make_person("Иванов", "Ассистент")
+        self.company_person = CompanyPerson.objects.create(
+            company=self.company,
+            person=self.person,
+        )
         self.caller = User.objects.create_user(
             username="caller",
             password="testpass123",
             company=self.company,
+            person=self.person,
             role=User.CALLER,
         )
         self.event = Event.objects.create(title="Встреча", company=self.company, is_active=True)
-        self.event.assigned_callers.add(self.caller)
+        self.event.assigned_callers.add(self.company_person)
 
     def test_caller_can_access_assigned_event(self):
         """Прозвонщик видит назначенные ему встречи."""
@@ -184,3 +208,85 @@ class CallerAccessTest(TestCase):
         self.client.force_login(self.caller)
         response = self.client.get(reverse("catalog:course_create"))
         self.assertIn(response.status_code, [403, 404])
+
+
+class CallPoolFillTest(TestCase):
+    def setUp(self):
+        self.company = make_company("Компания")
+        self.admin = make_admin("admin", self.company)
+        self.course = Course.objects.create(name="Курс", company=self.company)
+        self.other_course = Course.objects.create(name="Другой курс", company=self.company)
+        self.old_session = CourseSession.objects.create(
+            company=self.company,
+            course=self.course,
+            label="Старый поток",
+            start_date=date(2026, 1, 1),
+            end_date=date(2026, 2, 1),
+        )
+        self.current_session = CourseSession.objects.create(
+            company=self.company,
+            course=self.course,
+            label="Текущий поток",
+            start_date=date(2026, 5, 1),
+            end_date=None,
+        )
+        self.other_session = CourseSession.objects.create(
+            company=self.company,
+            course=self.other_course,
+            label="Чужой поток",
+            start_date=date(2026, 1, 1),
+            end_date=date(2026, 2, 1),
+        )
+        self.alumni = CompanyPerson.objects.create(
+            company=self.company,
+            person=make_person("Алумни", "Анна"),
+        )
+        self.current_student = CompanyPerson.objects.create(
+            company=self.company,
+            person=make_person("Текущий", "Студент"),
+        )
+        self.other_alumni = CompanyPerson.objects.create(
+            company=self.company,
+            person=make_person("Другой", "Курс"),
+        )
+        Participation.objects.create(
+            company=self.company,
+            company_person=self.alumni,
+            session=self.old_session,
+            role=Participation.STUDENT,
+        )
+        Participation.objects.create(
+            company=self.company,
+            company_person=self.current_student,
+            session=self.old_session,
+            role=Participation.STUDENT,
+        )
+        Participation.objects.create(
+            company=self.company,
+            company_person=self.current_student,
+            session=self.current_session,
+            role=Participation.ASSISTANT,
+        )
+        Participation.objects.create(
+            company=self.company,
+            company_person=self.other_alumni,
+            session=self.other_session,
+            role=Participation.STUDENT,
+        )
+        self.event = Event.objects.create(
+            title="Встреча выпускников",
+            company=self.company,
+            course=self.course,
+            date=date(2026, 6, 1),
+            is_active=True,
+        )
+
+    def test_fill_adds_only_previous_students_of_event_course(self):
+        """Заполнение прозвона берёт выпускников нужного курса и исключает текущую команду курса."""
+        self.client.force_login(self.admin)
+        response = self.client.post(reverse("calling:init_records", args=[self.event.pk]))
+        self.assertEqual(response.status_code, 302)
+        people_ids = set(
+            CallRecord.objects.filter(event=self.event).values_list("company_person_id", flat=True)
+        )
+        self.assertEqual(people_ids, {self.alumni.pk})

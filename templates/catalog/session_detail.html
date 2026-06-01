@@ -1,18 +1,20 @@
 {% extends "base.html" %}
 {% block title %}{{ session.label }}{% endblock %}
 {% block content %}
-<div class="flex items-center justify-between mb-6">
-    <div class="flex items-center">
+<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+    <div class="flex items-center min-w-0">
         <a href="{% url 'catalog:course_detail' session.course.pk %}" class="text-gray-400 hover:text-gray-600 mr-3">←</a>
-        <div>
+        <div class="min-w-0">
             <p class="text-sm text-gray-400">{{ session.course.name }}</p>
             <h1 class="text-2xl font-bold text-gray-800">{{ session.label }}</h1>
             <p class="text-sm text-gray-500">{{ session.date_range }} · {{ session.get_location_format_display }}</p>
         </div>
     </div>
     {% if user.is_company_admin or user.is_system_admin %}
-    <div class="flex gap-2">
-        <a href="{% url 'participation:create' %}?session={{ session.pk }}" class="btn btn-secondary text-sm">+ Участник</a>
+    <div class="flex flex-wrap gap-2">
+        <a href="{% url 'participation:create' %}?session={{ session.pk }}&role=STUDENT" class="btn btn-secondary text-sm">+ Студент</a>
+        <a href="{% url 'participation:create' %}?session={{ session.pk }}&role=ASSISTANT" class="btn btn-secondary text-sm">+ Ассистент</a>
+        <a href="{% url 'participation:create' %}?session={{ session.pk }}&role=TRAINER" class="btn btn-secondary text-sm">+ Тренер</a>
         <a href="{% url 'catalog:session_update' session.pk %}" class="btn btn-primary text-sm">Изменить</a>
     </div>
     {% endif %}
@@ -45,7 +47,7 @@
 </div>
 {% empty %}
 <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center text-gray-400">
-    Участников пока нет. <a href="{% url 'participation:create' %}?session={{ session.pk }}" class="text-indigo-600 hover:underline">Добавить</a>
+    Участников пока нет. <a href="{% url 'participation:create' %}?session={{ session.pk }}&role=STUDENT" class="text-indigo-600 hover:underline">Добавить студента</a>
 </div>
 {% endfor %}
 {% endblock %}

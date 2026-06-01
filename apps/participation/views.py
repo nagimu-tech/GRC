@@ -20,6 +20,7 @@ class ParticipationCreateView(TenantScopedMixin, CompanyAdminRequiredMixin, Crea
         kwargs["company"] = self.request.company
         kwargs["initial_person"] = self.request.GET.get("person")
         kwargs["initial_session"] = self.request.GET.get("session")
+        kwargs["initial_role"] = self.request.GET.get("role")
         return kwargs
 
     def form_valid(self, form):
@@ -28,8 +29,9 @@ class ParticipationCreateView(TenantScopedMixin, CompanyAdminRequiredMixin, Crea
         return super().form_valid(form)
 
     def get_success_url(self):
-        cp_id = self.object.company_person_id
-        return reverse_lazy("people:companyperson_detail", kwargs={"pk": cp_id})
+        if self.request.GET.get("session"):
+            return reverse_lazy("catalog:session_detail", kwargs={"pk": self.object.session_id})
+        return reverse_lazy("people:companyperson_detail", kwargs={"pk": self.object.company_person_id})
 
 
 class ParticipationUpdateView(TenantObjectMixin, CompanyAdminRequiredMixin, UpdateView):

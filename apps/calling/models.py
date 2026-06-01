@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models, transaction
+from django.db.models import Max, Q
 from django.utils import timezone
 from simple_history.models import HistoricalRecords
 from apps.core.models import TenantModel
@@ -21,9 +22,9 @@ class Event(TenantModel):
     is_active = models.BooleanField(default=True, verbose_name="Активна")
     notes = models.TextField(blank=True, verbose_name="Заметки")
     assigned_callers = models.ManyToManyField(
-        settings.AUTH_USER_MODEL,
+        "people.CompanyPerson",
         blank=True,
-        related_name="assigned_events",
+        related_name="assigned_call_events",
         verbose_name="Назначенные прозвонщики",
     )
     created_at = models.DateTimeField(auto_now_add=True)
@@ -35,6 +36,11 @@ class Event(TenantModel):
 
     def __str__(self):
         return self.title
+
+    def is_assigned_to_user(self, user):
+        if not user.is_authenticated or not getattr(user, "person_id", None):
+            return False
+        return self.assigned_callers.filter(person_id=user.person_id).exists()
 
 
 class CallRecord(TenantModel):
@@ -143,42 +149,73 @@ class CallRecord(TenantModel):
             return None
 
     @classmethod
-    def get_or_create_for_event(cls, event):
+    def fill_from_course(cls, event):
         """
-        Инициализация CallRecord для всех подходящих людей события.
-        Создаёт записи с дефолтным статусом NOT_CALLED для всех студентов курса.
+        Заполняет пул прозвона выпускниками выбранного курса.
+        Берём студентов завершённых запусков этого курса, сортируем по свежести
+        окончания и не добавляем тех, кто сейчас участвует в текущих/будущих
+        запусках этого же курса как студент, ассистент или тренер.
         """
         from apps.participation.models import Participation
-        from apps.people.models import CompanyPerson
 
         course = event.course
         if not course:
-            return
+            return 0
 
-        student_persons = (
-            CompanyPerson.objects
+        completed = (
+            Participation.objects
             .filter(
                 company=event.company,
-                participations__session__course=course,
-                participations__role=Participation.STUDENT,
-                is_active=True,
+                session__course=course,
+                role=Participation.STUDENT,
+                company_person__is_active=True,
+                company_person__company=event.company,
+                session__end_date__isnull=False,
             )
-            .distinct()
+        )
+        active_on_course = Participation.objects.filter(
+            company=event.company,
+            session__course=course,
+        )
+        if event.date:
+            completed = completed.filter(session__end_date__lt=event.date)
+            active_on_course = active_on_course.filter(
+                Q(session__end_date__isnull=True) | Q(session__end_date__gte=event.date)
+            )
+        else:
+            active_on_course = active_on_course.filter(session__end_date__isnull=True)
+
+        excluded_ids = set(
+            active_on_course.values_list("company_person_id", flat=True).distinct()
         )
 
         existing_ids = set(
             cls.objects.filter(event=event).values_list("company_person_id", flat=True)
         )
 
-        new_records = [
-            cls(
+        candidates = (
+            completed
+            .exclude(company_person_id__in=excluded_ids)
+            .values("company_person_id")
+            .annotate(latest_end=Max("session__end_date"))
+            .order_by("-latest_end", "company_person__person__last_name")
+        )
+
+        new_records = []
+        for item in candidates:
+            company_person_id = item["company_person_id"]
+            if company_person_id in existing_ids:
+                continue
+            new_records.append(cls(
                 event=event,
-                company_person=cp,
+                company_person_id=company_person_id,
                 company=event.company,
                 status=cls.NOT_CALLED,
-            )
-            for cp in student_persons
-            if cp.pk not in existing_ids
-        ]
+            ))
         if new_records:
             cls.objects.bulk_create(new_records, ignore_conflicts=True)
+        return len(new_records)
+
+    @classmethod
+    def get_or_create_for_event(cls, event):
+        return cls.fill_from_course(event)

@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}Прозвоны{% endblock %}
 {% block content %}
-<div class="flex items-center justify-between mb-6">
+<div class="flex items-center justify-between gap-3 mb-6">
     <h1 class="text-2xl font-bold text-gray-800">Встречи и прозвоны</h1>
     {% if user.is_company_admin or user.is_system_admin %}
     <a href="{% url 'calling:event_create' %}" class="btn btn-primary">+ Создать</a>
@@ -11,8 +11,8 @@
 <div class="space-y-3">
     {% for event in events %}
     <div class="bg-white rounded-xl shadow-sm border {% if event.is_active %}border-orange-200{% else %}border-gray-100{% endif %} p-4">
-        <div class="flex items-start justify-between">
-            <div class="flex-1">
+        <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2">
                     <h2 class="font-semibold text-gray-800">{{ event.title }}</h2>
                     {% if event.is_active %}
@@ -28,7 +28,7 @@
                 </div>
                 {% if event.notes %}<p class="text-xs text-gray-400 mt-1">{{ event.notes|truncatechars:100 }}</p>{% endif %}
             </div>
-            <div class="flex gap-2 flex-shrink-0 ml-4">
+            <div class="flex flex-wrap gap-2 sm:flex-shrink-0 sm:ml-4">
                 {% if event.is_active %}
                 <a href="{% url 'calling:session' event.pk %}" class="btn btn-primary text-sm">
                     Начать прозвон

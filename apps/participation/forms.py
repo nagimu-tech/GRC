@@ -19,7 +19,7 @@ class ParticipationForm(forms.ModelForm):
             "notes": forms.Textarea(attrs={"rows": 3}),
         }
 
-    def __init__(self, *args, company=None, initial_person=None, initial_session=None, **kwargs):
+    def __init__(self, *args, company=None, initial_person=None, initial_session=None, initial_role=None, **kwargs):
         super().__init__(*args, **kwargs)
         if company:
             self.fields["company_person"].queryset = CompanyPerson.objects.filter(
@@ -35,3 +35,17 @@ class ParticipationForm(forms.ModelForm):
             self.fields["company_person"].initial = initial_person
         if initial_session:
             self.fields["session"].initial = initial_session
+        if initial_role:
+            self.fields["role"].initial = initial_role
+
+        self.fields["chosen_position"].help_text = "Заполняется для ассистента как временная должность на этом запуске курса."
+
+    def clean(self):
+        cleaned = super().clean()
+        role = cleaned.get("role")
+        position = cleaned.get("chosen_position")
+        if role == Participation.ASSISTANT and not position:
+            self.add_error("chosen_position", "Для ассистента укажите должность на этом курсе.")
+        if role != Participation.ASSISTANT:
+            cleaned["chosen_position"] = None
+        return cleaned

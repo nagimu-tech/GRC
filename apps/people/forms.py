@@ -1,5 +1,7 @@
 from django import forms
+from django.core.exceptions import ValidationError
 from django.db.models import Q
+from apps.accounts.models import Company
 from .models import Person, CompanyPerson
 
 
@@ -96,8 +98,9 @@ class CompanyPersonEditForm(forms.ModelForm):
     """
     class Meta:
         model = CompanyPerson
-        fields = ["notes", "consent_stored", "consent_contact", "is_active"]
+        fields = ["company", "notes", "consent_stored", "consent_contact", "is_active"]
         labels = {
+            "company": "Компания",
             "notes": "Заметки",
             "consent_stored": "Согласие на хранение ПДн",
             "consent_contact": "Согласие на обзвон",
@@ -106,6 +109,26 @@ class CompanyPersonEditForm(forms.ModelForm):
         widgets = {
             "notes": forms.Textarea(attrs={"rows": 3}),
         }
+
+    def __init__(self, *args, user=None, current_company=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["company"].required = False
+        self.fields["company"].empty_label = "— Без компании —"
+        if user and user.is_system_admin:
+            self.fields["company"].queryset = Company.objects.filter(is_active=True)
+        elif current_company:
+            self.fields["company"].queryset = Company.objects.filter(pk=current_company.pk)
+        else:
+            self.fields["company"].queryset = Company.objects.none()
+
+    def clean_company(self):
+        company = self.cleaned_data["company"]
+        if company and CompanyPerson.objects.filter(
+            company=company,
+            person=self.instance.person,
+        ).exclude(pk=self.instance.pk).exists():
+            raise ValidationError("В этой компании уже есть карточка для этого человека.")
+        return company
 
 
 class PersonMergeForm(forms.Form):

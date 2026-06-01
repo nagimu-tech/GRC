@@ -1,4 +1,6 @@
 from django.db import models
+from django.db.models import Q
+from django.urls import reverse
 from simple_history.models import HistoricalRecords
 from apps.core.models import TenantModel
 
@@ -41,6 +43,14 @@ class CompanyPerson(TenantModel):
     Карточка человека в конкретной компании (company-scoped).
     Все рабочие экраны компании работают через CompanyPerson, не через Person напрямую.
     """
+    company = models.ForeignKey(
+        "accounts.Company",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Компания",
+        db_index=True,
+    )
     person = models.ForeignKey(
         Person,
         on_delete=models.PROTECT,
@@ -58,11 +68,21 @@ class CompanyPerson(TenantModel):
     class Meta:
         verbose_name = "Человек в компании"
         verbose_name_plural = "Люди в компании"
-        unique_together = [("company", "person")]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["company", "person"],
+                condition=Q(company__isnull=False),
+                name="uniq_company_person_when_company_set",
+            )
+        ]
         ordering = ["person__last_name", "person__first_name"]
 
     def __str__(self):
-        return f"{self.person.full_name} ({self.company.name})"
+        company_name = self.company.name if self.company else "без компании"
+        return f"{self.person.full_name} ({company_name})"
+
+    def get_absolute_url(self):
+        return reverse("people:companyperson_detail", kwargs={"pk": self.pk})
 
     @property
     def full_name(self):

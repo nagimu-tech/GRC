@@ -38,6 +38,14 @@ class User(AbstractUser):
         related_name="users",
         verbose_name="Компания",
     )
+    person = models.OneToOneField(
+        "people.Person",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="user_account",
+        verbose_name="Связанный человек",
+    )
     role = models.CharField(
         max_length=20,
         choices=ROLE_CHOICES,
