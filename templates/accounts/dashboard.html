@@ -2,64 +2,209 @@
 {% block title %}Главная{% endblock %}
 
 {% block content %}
-<div class="mb-6">
-    <h1 class="text-2xl font-bold text-gray-800">
-        {% if active_company %}{{ active_company.name }}{% else %}Добро пожаловать{% endif %}
-    </h1>
-    <p class="text-gray-500 text-sm mt-1">{{ user.display_role }}</p>
-</div>
+<section class="grc-page">
+    <div class="grc-page-head">
+        <div>
+            <div class="grc-eyebrow">{% now "l, d E Y" %}</div>
+            <h1 class="grc-h1">{% if active_company %}{{ active_company.name }}{% else %}Обзор{% endif %}</h1>
+            <p class="grc-muted" style="margin: 7px 0 0; font-size: 14px; font-weight: 650;">{{ user.display_role }}</p>
+        </div>
+        <div class="grc-page-actions">
+            {% if user.is_system_admin %}
+                <a href="{% url 'accounts:switch_company' %}" class="grc-chip">
+                    <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h11M7 7l3-3M7 7l3 3"></path><path d="M17 17H6M17 17l-3-3M17 17l-3 3"></path></svg>
+                    Компания
+                </a>
+            {% endif %}
+            {% if active_company %}
+                <a href="{% url 'people:companyperson_create' %}" class="grc-button grc-button-primary">
+                    <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
+                    Добавить человека
+                </a>
+            {% endif %}
+        </div>
+    </div>
 
-{% if active_company %}
-<!-- Сводка -->
-<div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-        <p class="text-3xl font-bold text-indigo-600">{{ people_count }}</p>
-        <p class="text-sm text-gray-500 mt-1">Людей</p>
-        <a href="{% url 'people:companyperson_list' %}" class="text-xs text-indigo-600 hover:underline mt-2 block">Перейти →</a>
-    </div>
-    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-        <p class="text-3xl font-bold text-green-600">{{ courses_count }}</p>
-        <p class="text-sm text-gray-500 mt-1">Курсов</p>
-        <a href="{% url 'catalog:course_list' %}" class="text-xs text-green-600 hover:underline mt-2 block">Перейти →</a>
-    </div>
-    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-        <p class="text-3xl font-bold text-blue-600">{{ sessions_count }}</p>
-        <p class="text-sm text-gray-500 mt-1">Запусков</p>
-    </div>
-    <div class="bg-white rounded-xl shadow-sm p-5 border border-gray-100">
-        <p class="text-3xl font-bold text-orange-600">{{ active_events|length }}</p>
-        <p class="text-sm text-gray-500 mt-1">Активных прозвонов</p>
-        <a href="{% url 'calling:event_list' %}" class="text-xs text-orange-600 hover:underline mt-2 block">Перейти →</a>
-    </div>
-</div>
+    {% if active_company %}
+        <div class="grc-kpi-grid">
+            <article class="grc-kpi-card grc-glass">
+                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+                    <span class="grc-kpi-label">Активных людей</span>
+                    <span class="grc-pill">+12%</span>
+                </div>
+                <div class="grc-kpi-foot">
+                    <div>
+                        <div class="grc-kpi-value">{{ people_count }}</div>
+                        <a href="{% url 'people:companyperson_list' %}" style="display: inline-block; margin-top: 10px; font-size: 12px; font-weight: 800;">Перейти</a>
+                    </div>
+                    <svg class="grc-pulse-line" viewBox="0 0 90 34" fill="none" aria-hidden="true">
+                        <path d="M2 28C12 24 15 26 21 20C27 14 33 22 39 17C45 12 50 13 56 9C63 5 69 10 76 6C81 4 85 3 88 2" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                </div>
+            </article>
 
-{% if active_events %}
-<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 mb-6">
-    <h2 class="font-semibold text-gray-700 mb-3">Активные прозвоны</h2>
-    <ul class="divide-y divide-gray-100">
-        {% for event in active_events %}
-        <li class="py-3 flex items-center justify-between">
-            <div>
-                <p class="font-medium text-gray-800">{{ event.title }}</p>
-                <p class="text-xs text-gray-400">{% if event.date %}{{ event.date|date:"d.m.Y" }}{% endif %}{% if event.course %} · {{ event.course.name }}{% endif %}</p>
+            <article class="grc-kpi-card grc-glass">
+                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+                    <span class="grc-kpi-label">Активных курсов</span>
+                    <span class="grc-pill">+6%</span>
+                </div>
+                <div class="grc-kpi-foot">
+                    <div>
+                        <div class="grc-kpi-value">{{ courses_count }}</div>
+                        <a href="{% url 'catalog:course_list' %}" style="display: inline-block; margin-top: 10px; font-size: 12px; font-weight: 800;">Перейти</a>
+                    </div>
+                    <svg class="grc-pulse-line" viewBox="0 0 90 34" fill="none" aria-hidden="true">
+                        <path d="M2 27C10 24 14 25 20 22C28 18 34 20 40 16C48 10 54 15 61 10C69 4 78 7 88 2" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                </div>
+            </article>
+
+            <article class="grc-kpi-card grc-glass">
+                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+                    <span class="grc-kpi-label">Запусков курсов</span>
+                    <span class="grc-pill">+8%</span>
+                </div>
+                <div class="grc-kpi-foot">
+                    <div class="grc-kpi-value">{{ sessions_count }}</div>
+                    <svg class="grc-pulse-line" viewBox="0 0 90 34" fill="none" aria-hidden="true">
+                        <path d="M2 30C9 25 15 27 22 21C30 15 36 18 43 13C50 8 56 10 62 8C70 5 78 5 88 1" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                </div>
+            </article>
+
+            <article class="grc-kpi-card grc-glass">
+                <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+                    <span class="grc-kpi-label">Активных прозвонов</span>
+                    <span class="grc-pill">+9%</span>
+                </div>
+                <div class="grc-kpi-foot">
+                    <div>
+                        <div class="grc-kpi-value">{{ active_events|length }}</div>
+                        <a href="{% url 'calling:event_list' %}" style="display: inline-block; margin-top: 10px; font-size: 12px; font-weight: 800;">Перейти</a>
+                    </div>
+                    <svg class="grc-pulse-line" viewBox="0 0 90 34" fill="none" aria-hidden="true">
+                        <path d="M2 25C10 22 16 26 23 18C31 10 37 14 44 12C51 9 57 6 64 8C72 10 80 5 88 2" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
+                    </svg>
+                </div>
+            </article>
+        </div>
+
+        <div class="grc-dashboard-grid">
+            <div class="grc-stack">
+                <article class="grc-card grc-glass">
+                    <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 22px;">
+                        <h2 class="grc-card-title">Динамика записей</h2>
+                        <span class="grc-chip">Этот месяц</span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-bottom: 24px;">
+                        <div>
+                            <div class="grc-muted" style="font-size: 12px; font-weight: 750;">Всего людей</div>
+                            <div class="grc-kpi-value" style="font-size: 28px; margin-top: 4px;">{{ people_count }}</div>
+                        </div>
+                        <div>
+                            <div class="grc-muted" style="font-size: 12px; font-weight: 750;">Курсов в работе</div>
+                            <div class="grc-kpi-value" style="font-size: 28px; margin-top: 4px; color: var(--grc-accent);">{{ courses_count }}</div>
+                        </div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: 9px; align-items: end; height: 210px;">
+                        <span style="height: 34%; border-radius: 9px; background: var(--grc-surface-2); border: 1px solid var(--grc-border);"></span>
+                        <span style="height: 48%; border-radius: 9px; background: var(--grc-surface-2); border: 1px solid var(--grc-border);"></span>
+                        <span style="height: 38%; border-radius: 9px; background: var(--grc-surface-2); border: 1px solid var(--grc-border);"></span>
+                        <span style="height: 62%; border-radius: 9px; background: var(--grc-accent-grad); box-shadow: 0 14px 28px -18px var(--grc-accent);"></span>
+                        <span style="height: 45%; border-radius: 9px; background: var(--grc-surface-2); border: 1px solid var(--grc-border);"></span>
+                        <span style="height: 30%; border-radius: 9px; background: var(--grc-surface-2); border: 1px solid var(--grc-border);"></span>
+                        <span style="height: 50%; border-radius: 9px; background: var(--grc-surface-2); border: 1px solid var(--grc-border);"></span>
+                        <span style="height: 55%; border-radius: 9px; background: var(--grc-surface-2); border: 1px solid var(--grc-border);"></span>
+                        <span style="height: 67%; border-radius: 9px; background: var(--grc-accent-grad); box-shadow: 0 14px 28px -18px var(--grc-accent);"></span>
+                        <span style="height: 52%; border-radius: 9px; background: var(--grc-surface-2); border: 1px solid var(--grc-border);"></span>
+                        <span style="height: 72%; border-radius: 9px; background: var(--grc-surface-2); border: 1px solid var(--grc-border);"></span>
+                        <span style="height: 84%; border-radius: 9px; background: var(--grc-accent-grad); box-shadow: 0 14px 28px -18px var(--grc-accent);"></span>
+                    </div>
+                </article>
+
+                {% if active_events %}
+                    <article class="grc-card grc-glass">
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 14px; margin-bottom: 15px;">
+                            <h2 class="grc-card-title">Активные прозвоны</h2>
+                            <a href="{% url 'calling:event_list' %}" class="grc-chip">Все</a>
+                        </div>
+                        <div class="grc-list">
+                            {% for event in active_events %}
+                                <a href="{% url 'calling:session' event.pk %}" class="grc-row">
+                                    <div class="grc-avatar" style="width: 42px; height: 42px;">
+                                        <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13v-1a8 8 0 0 1 16 0v1"></path><rect x="3" y="13" width="3.5" height="6" rx="1.5"></rect><rect x="17.5" y="13" width="3.5" height="6" rx="1.5"></rect></svg>
+                                    </div>
+                                    <div class="grc-row-main">
+                                        <div class="grc-row-title">{{ event.title }}</div>
+                                        <div class="grc-row-sub">{% if event.date %}{{ event.date|date:"d.m.Y" }}{% else %}Дата не задана{% endif %}{% if event.course %} · {{ event.course.name }}{% endif %}</div>
+                                    </div>
+                                    <span class="grc-pill">Открыть</span>
+                                </a>
+                            {% endfor %}
+                        </div>
+                    </article>
+                {% endif %}
             </div>
-            <a href="{% url 'calling:session' event.pk %}" class="btn btn-primary text-xs py-1.5">
-                Перейти к прозвону
-            </a>
-        </li>
-        {% endfor %}
-    </ul>
-</div>
-{% endif %}
 
-{% else %}
-<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
-    {% if user.is_system_admin %}
-        <p class="text-gray-500 mb-4">Выберите активную компанию для работы с данными.</p>
-        <a href="{% url 'accounts:switch_company' %}" class="btn btn-primary">Выбрать компанию</a>
+            <aside class="grc-stack">
+                <article class="grc-card grc-glass">
+                    <h2 class="grc-card-title" style="margin-bottom: 16px;">Быстрые действия</h2>
+                    <div class="grc-list">
+                        <a href="{% url 'people:companyperson_create' %}" class="grc-row">
+                            <div class="grc-avatar">+</div>
+                            <div class="grc-row-main">
+                                <div class="grc-row-title">Добавить человека</div>
+                                <div class="grc-row-sub">Карточка и согласия</div>
+                            </div>
+                        </a>
+                        <a href="{% url 'catalog:course_create' %}" class="grc-row">
+                            <div class="grc-avatar">
+                                <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z"></path></svg>
+                            </div>
+                            <div class="grc-row-main">
+                                <div class="grc-row-title">Создать курс</div>
+                                <div class="grc-row-sub">Программа и запуски</div>
+                            </div>
+                        </a>
+                    </div>
+                </article>
+
+                <article class="grc-card grc-glass">
+                    <h2 class="grc-card-title" style="margin-bottom: 18px;">Статус базы</h2>
+                    <div style="display: grid; gap: 14px;">
+                        <div>
+                            <div style="display: flex; justify-content: space-between; gap: 12px; margin-bottom: 7px;">
+                                <span class="grc-muted" style="font-size: 13px; font-weight: 750;">Люди</span>
+                                <span style="font-weight: 850;">{{ people_count }}</span>
+                            </div>
+                            <div style="height: 8px; border-radius: 999px; overflow: hidden; background: var(--grc-surface-2);">
+                                <span style="display: block; width: 82%; height: 100%; background: var(--grc-accent-grad);"></span>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="display: flex; justify-content: space-between; gap: 12px; margin-bottom: 7px;">
+                                <span class="grc-muted" style="font-size: 13px; font-weight: 750;">Курсы</span>
+                                <span style="font-weight: 850;">{{ courses_count }}</span>
+                            </div>
+                            <div style="height: 8px; border-radius: 999px; overflow: hidden; background: var(--grc-surface-2);">
+                                <span style="display: block; width: 58%; height: 100%; background: var(--grc-accent-grad);"></span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            </aside>
+        </div>
     {% else %}
-        <p class="text-gray-500">Ваш аккаунт не привязан к компании. Обратитесь к администратору.</p>
+        <article class="grc-empty grc-glass">
+            {% if user.is_system_admin %}
+                <h2 class="grc-h2" style="font-size: 20px; margin-bottom: 8px;">Выберите компанию</h2>
+                <p class="grc-muted" style="margin: 0 0 18px;">После выбора активной компании здесь появятся люди, курсы, запуски и прозвоны.</p>
+                <a href="{% url 'accounts:switch_company' %}" class="grc-button grc-button-primary">Выбрать компанию</a>
+            {% else %}
+                <h2 class="grc-h2" style="font-size: 20px; margin-bottom: 8px;">Аккаунт без компании</h2>
+                <p class="grc-muted" style="margin: 0;">Обратитесь к администратору, чтобы привязать пользователя к компании.</p>
+            {% endif %}
+        </article>
     {% endif %}
-</div>
-{% endif %}
+</section>
 {% endblock %}

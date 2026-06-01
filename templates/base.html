@@ -1,165 +1,147 @@
+{% load static %}
 <!DOCTYPE html>
-<html lang="ru" class="h-full">
+<html lang="ru" class="h-full" data-mode="dark">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}GRC{% endblock %} — Учёт выпускников</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Onest:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/htmx.org@1.9.12" integrity="sha384-SKyQV2J4ZCWHXnOxJnLmQkSVOXn8gmIh2OP5TaODaFELcZsSSdaGFSmKMJW+BVm" crossorigin="anonymous"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="{% static 'css/grc-theme.css' %}">
     <meta name="htmx-config" content='{"defaultSwapStyle":"outerHTML"}'>
     {% block extra_head %}{% endblock %}
 </head>
-<body class="h-full bg-gray-50 text-gray-900" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+<body class="grc-body" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
 
 {% if user.is_authenticated %}
-<!-- Навигация -->
-<nav class="bg-white shadow-sm border-b border-gray-200" x-data="{ open: false }">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-14">
-            <!-- Лого и основные ссылки -->
-            <div class="flex items-center space-x-1">
-                <a href="{% url 'accounts:dashboard' %}" class="text-indigo-700 font-bold text-lg mr-4">GRC</a>
+<div class="grc-layout">
+    <aside class="grc-sidebar grc-glass grc-scroll">
+        <a class="grc-brand" href="{% url 'accounts:dashboard' %}">
+            <span class="grc-logo">
+                <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M18.4 5.6l-2.1 2.1M7.7 16.3l-2.1 2.1"></path>
+                </svg>
+            </span>
+            <span>
+                <span class="grc-brand-title">GRC</span>
+                <span class="grc-brand-subtitle">Учёт курсов</span>
+            </span>
+        </a>
 
-                {% if active_company %}
-                    <span class="hidden sm:inline text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">{{ active_company.name }}</span>
-                {% endif %}
+        <nav class="grc-nav">
+            <a href="{% url 'accounts:dashboard' %}" class="grc-nav-link {% if request.resolver_match.app_name == 'accounts' and request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}">
+                <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect></svg>
+                Обзор
+            </a>
+            <a href="{% url 'people:companyperson_list' %}" class="grc-nav-link {% if request.resolver_match.app_name == 'people' and request.resolver_match.url_name != 'merge_candidates' %}is-active{% endif %}">
+                <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M3.5 19a5.5 5.5 0 0 1 11 0"></path><path d="M16 5.2a3 3 0 0 1 0 5.6"></path><path d="M17.5 19a5 5 0 0 0-3-4.6"></path></svg>
+                Люди
+            </a>
+            <a href="{% url 'catalog:course_list' %}" class="grc-nav-link {% if request.resolver_match.app_name == 'catalog' and 'position' not in request.resolver_match.url_name %}is-active{% endif %}">
+                <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z"></path><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19"></path></svg>
+                Курсы
+            </a>
+            <a href="{% url 'calling:event_list' %}" class="grc-nav-link {% if request.resolver_match.app_name == 'calling' %}is-active{% endif %}">
+                <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13v-1a8 8 0 0 1 16 0v1"></path><rect x="3" y="13" width="3.5" height="6" rx="1.5"></rect><rect x="17.5" y="13" width="3.5" height="6" rx="1.5"></rect><path d="M20 19v.5a3 3 0 0 1-3 3H13"></path></svg>
+                Прозвон
+            </a>
 
-                <div class="hidden md:flex items-center space-x-1">
-                    <a href="{% url 'people:companyperson_list' %}" class="nav-link">Люди</a>
-                    <a href="{% url 'catalog:course_list' %}" class="nav-link">Курсы</a>
-                    <a href="{% url 'calling:event_list' %}" class="nav-link">Прозвон</a>
+            {% if user.is_system_admin or user.is_company_admin %}
+                <div class="grc-nav-section">Управление</div>
+                <a href="{% url 'catalog:position_list' %}" class="grc-nav-link {% if request.resolver_match.app_name == 'catalog' and 'position' in request.resolver_match.url_name %}is-active{% endif %}">
+                    <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V4"></path><path d="M4 20h16"></path><path d="M8 16v-3M12.5 16V8M17 16v-6"></path></svg>
+                    Должности
+                </a>
+                <a href="{% url 'accounts:user_list' %}" class="grc-nav-link {% if request.resolver_match.app_name == 'accounts' and 'user' in request.resolver_match.url_name %}is-active{% endif %}">
+                    <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20a7 7 0 0 1 14 0"></path></svg>
+                    Пользователи
+                </a>
+            {% endif %}
 
-                    {% if user.is_system_admin or user.is_company_admin %}
-                        <a href="{% url 'catalog:position_list' %}" class="nav-link">Должности</a>
-                        <a href="{% url 'accounts:user_list' %}" class="nav-link">Пользователи</a>
-                    {% endif %}
+            {% if user.is_system_admin %}
+                <a href="{% url 'accounts:company_list' %}" class="grc-nav-link {% if request.resolver_match.app_name == 'accounts' and 'company' in request.resolver_match.url_name %}is-active{% endif %}">
+                    <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V5a2 2 0 0 1 2-2h8v18"></path><path d="M14 8h4a2 2 0 0 1 2 2v11"></path><path d="M8 7h2M8 11h2M8 15h2M17 12h1M17 16h1"></path></svg>
+                    Компании
+                </a>
+                <a href="{% url 'people:merge_candidates' %}" class="grc-nav-link {% if request.resolver_match.app_name == 'people' and request.resolver_match.url_name == 'merge_candidates' %}is-active{% endif %}">
+                    <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10H7z"></path><path d="M3 12h4M17 12h4M12 3v4M12 17v4"></path></svg>
+                    Сопоставление
+                </a>
+            {% endif %}
+        </nav>
 
-                    {% if user.is_system_admin %}
-                        <a href="{% url 'accounts:company_list' %}" class="nav-link">Компании</a>
-                        <a href="{% url 'people:merge_candidates' %}" class="nav-link">Сопоставление</a>
-                    {% endif %}
-                </div>
-            </div>
+        <div class="grc-nav-spacer"></div>
 
-            <!-- Правая часть -->
-            <div class="flex items-center space-x-3">
-                {% if user.is_system_admin %}
-                    <a href="{% url 'accounts:switch_company' %}" class="hidden sm:inline-flex items-center text-xs text-indigo-600 hover:text-indigo-800 border border-indigo-200 px-2 py-1 rounded">
-                        {% if active_company %}{{ active_company.name }}{% else %}Все компании{% endif %} ↕
-                    </a>
-                {% endif %}
-
-                <span class="hidden sm:block text-sm text-gray-600">{{ user }}</span>
-                <form method="post" action="{% url 'accounts:logout' %}">
-                    {% csrf_token %}
-                    <button type="submit" class="text-sm text-gray-500 hover:text-red-600">Выйти</button>
-                </form>
-
-                <!-- Мобильное меню -->
-                <button @click="open = !open" class="md:hidden p-2 rounded text-gray-500 hover:text-gray-900">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                    </svg>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Мобильное меню -->
-    <div x-show="open" class="md:hidden border-t border-gray-200 bg-white pb-2">
-        <a href="{% url 'people:companyperson_list' %}" class="mobile-nav-link">Люди</a>
-        <a href="{% url 'catalog:course_list' %}" class="mobile-nav-link">Курсы</a>
-        <a href="{% url 'calling:event_list' %}" class="mobile-nav-link">Прозвон</a>
-        {% if user.is_system_admin or user.is_company_admin %}
-            <a href="{% url 'accounts:user_list' %}" class="mobile-nav-link">Пользователи</a>
-        {% endif %}
         {% if user.is_system_admin %}
-            <a href="{% url 'accounts:company_list' %}" class="mobile-nav-link">Компании</a>
-            <a href="{% url 'accounts:switch_company' %}" class="mobile-nav-link">Сменить компанию</a>
+            <a href="{% url 'accounts:switch_company' %}" class="grc-chip" title="Сменить активную компанию">
+                <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h11M7 7l3-3M7 7l3 3"></path><path d="M17 17H6M17 17l-3-3M17 17l-3 3"></path></svg>
+                {% if active_company %}{{ active_company.name }}{% else %}Все компании{% endif %}
+            </a>
+        {% elif active_company %}
+            <div class="grc-chip" title="Активная компания">{{ active_company.name }}</div>
         {% endif %}
-    </div>
-</nav>
-{% endif %}
+    </aside>
 
-<!-- Сообщения -->
-{% if messages %}
-<div class="max-w-7xl mx-auto px-4 pt-3" id="messages">
-    {% for message in messages %}
-    <div class="mb-2 px-4 py-3 rounded text-sm
-        {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
-        {% elif message.tags == 'warning' %}bg-yellow-50 text-yellow-800 border border-yellow-200
-        {% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200
-        {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
-        {{ message }}
+    <div class="grc-mobile-top">
+        <a class="grc-brand grc-glass" href="{% url 'accounts:dashboard' %}">
+            <span class="grc-logo">
+                <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 3v3M12 18v3M3 12h3M18 12h3"></path></svg>
+            </span>
+            <span class="grc-brand-title">GRC</span>
+        </a>
     </div>
-    {% endfor %}
+
+    <header class="grc-topbar">
+        <form class="grc-search grc-glass" method="get" action="{% url 'people:companyperson_list' %}">
+            <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-3.2-3.2"></path></svg>
+            <input name="q" type="search" placeholder="Поиск человека, телефона, email…" value="{{ search_query|default:'' }}">
+            <span class="grc-kbd">Enter</span>
+        </form>
+
+        <div class="grc-chip">
+            <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="16" rx="2.5"></rect><path d="M3.5 9.5h17M8 3v4M16 3v4"></path></svg>
+            <span>{% now "d.m.Y" %}</span>
+        </div>
+
+        <button class="grc-icon-button" type="button" data-theme-toggle>
+            <svg data-theme-icon="dark" class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"></path></svg>
+            <svg data-theme-icon="light" class="grc-icon" hidden viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5"></path></svg>
+        </button>
+
+        <div class="grc-user-card grc-glass">
+            <div class="grc-avatar">{{ user.username|first|upper }}</div>
+            <div>
+                <div class="grc-user-name">{{ user }}</div>
+                <div class="grc-user-role">{{ user.display_role }}</div>
+            </div>
+            <form method="post" action="{% url 'accounts:logout' %}">
+                {% csrf_token %}
+                <button class="grc-icon-button" type="submit" title="Выйти" style="width: 34px; height: 34px; min-height: 34px; border-radius: 10px;">
+                    <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10 17l5-5-5-5"></path><path d="M15 12H3"></path><path d="M21 4v16"></path></svg>
+                </button>
+            </form>
+        </div>
+    </header>
+
+    <main class="grc-main grc-scroll">
+        {% if messages %}
+            <div class="grc-page" style="margin-bottom: var(--grc-gap);">
+                {% for message in messages %}
+                    <div class="grc-message {% if message.tags == 'error' %}grc-error{% endif %}">{{ message }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
 </div>
 {% endif %}
 
-<!-- Контент -->
-<main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-    {% block content %}{% endblock %}
-</main>
-
-<style>
-    .nav-link {
-        @apply px-3 py-2 text-sm text-gray-600 hover:text-indigo-700 hover:bg-indigo-50 rounded-md transition-colors;
-    }
-    .mobile-nav-link {
-        display: block;
-        padding: 0.625rem 1rem;
-        font-size: 0.875rem;
-        color: #4b5563;
-        border-bottom: 1px solid #f3f4f6;
-    }
-    .mobile-nav-link:hover {
-        background-color: #f9fafb;
-    }
-    .form-input {
-        display: block;
-        width: 100%;
-        padding: 0.5rem 0.75rem;
-        border: 1px solid #d1d5db;
-        border-radius: 0.375rem;
-        font-size: 0.875rem;
-        line-height: 1.25rem;
-    }
-    .form-input:focus {
-        outline: none;
-        border-color: #6366f1;
-        box-shadow: 0 0 0 3px rgba(99,102,241,0.1);
-    }
-    .btn {
-        display: inline-flex;
-        align-items: center;
-        padding: 0.5rem 1rem;
-        border-radius: 0.375rem;
-        font-size: 0.875rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.15s;
-    }
-    .btn-primary {
-        background-color: #4f46e5;
-        color: white;
-        border: none;
-    }
-    .btn-primary:hover { background-color: #4338ca; }
-    .btn-secondary {
-        background-color: white;
-        color: #374151;
-        border: 1px solid #d1d5db;
-    }
-    .btn-secondary:hover { background-color: #f9fafb; }
-    .btn-danger {
-        background-color: #dc2626;
-        color: white;
-        border: none;
-    }
-    .btn-danger:hover { background-color: #b91c1c; }
-</style>
-
+<script src="{% static 'js/grc-ui.js' %}"></script>
 {% block extra_js %}{% endblock %}
 </body>
 </html>
