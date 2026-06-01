@@ -4,7 +4,7 @@ from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, FormView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, FormView, View
 
 from apps.core.mixins import (
     TenantScopedMixin, TenantObjectMixin,
@@ -12,9 +12,9 @@ from apps.core.mixins import (
 )
 from .forms import (
     PersonForm, CompanyPersonCreateForm,
-    CompanyPersonEditForm, PersonMergeForm,
+    CompanyPersonEditForm, CompanyPersonPhotoForm, PersonMergeForm,
 )
-from .models import Person, CompanyPerson
+from .models import Person, CompanyPerson, CompanyPersonPhoto
 
 
 class CompanyPersonListView(TenantScopedMixin, CompanyAdminRequiredMixin, ListView):
@@ -57,6 +57,9 @@ class CompanyPersonDetailView(TenantScopedMixin, TenantObjectMixin, CompanyAdmin
             .order_by("-session__start_date")
         )
         ctx["participations"] = participations
+        ctx["photos"] = self.object.photos.all()
+        ctx["photo_form"] = CompanyPersonPhotoForm()
+        ctx["photo_limit"] = 5
         return ctx
 
 
@@ -229,3 +232,45 @@ class CompanyPersonMergeView(SystemAdminRequiredMixin, FormView):
             f"Карточка перепривязана с «{old_person}» на «{target_person}»."
         )
         return redirect("people:merge_candidates")
+
+
+class CompanyPersonPhotoAddView(TenantObjectMixin, CompanyAdminRequiredMixin, View):
+    limit = 5
+
+    def get_queryset(self):
+        if self.request.user.is_system_admin:
+            return CompanyPerson.objects.all()
+        return CompanyPerson.objects.filter(company=self.request.company)
+
+    def get_object(self):
+        return get_object_or_404(self.get_queryset(), pk=self.kwargs["pk"])
+
+    def post(self, request, pk):
+        company_person = self.get_object()
+        if company_person.photos.count() >= self.limit:
+            messages.error(request, f"Для человека можно добавить не больше {self.limit} фото.")
+            return redirect("people:companyperson_detail", pk=company_person.pk)
+
+        form = CompanyPersonPhotoForm(request.POST)
+        if form.is_valid():
+            photo = form.save(commit=False)
+            photo.company_person = company_person
+            photo.save()
+            messages.success(request, "Фото добавлено.")
+        else:
+            messages.error(request, "Не удалось добавить фото. Проверьте ссылку.")
+        return redirect("people:companyperson_detail", pk=company_person.pk)
+
+
+class CompanyPersonPhotoDeleteView(CompanyAdminRequiredMixin, View):
+    def post(self, request, pk):
+        photo = get_object_or_404(
+            CompanyPersonPhoto.objects.select_related("company_person"),
+            pk=pk,
+        )
+        company_person = photo.company_person
+        if not request.user.is_system_admin and company_person.company_id != request.company.pk:
+            raise Http404
+        photo.delete()
+        messages.success(request, "Фото удалено.")
+        return redirect("people:companyperson_detail", pk=company_person.pk)

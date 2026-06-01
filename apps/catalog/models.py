@@ -80,3 +80,25 @@ class CourseSession(TenantModel):
         if self.start_date:
             return self.start_date.strftime("%d.%m.%Y")
         return "—"
+
+
+class CourseSessionPhoto(models.Model):
+    """Фото потока курса: хранится во внешнем хранилище, в БД только ссылка."""
+    session = models.ForeignKey(
+        CourseSession,
+        on_delete=models.CASCADE,
+        related_name="photos",
+        verbose_name="Поток курса",
+    )
+    image_url = models.URLField(max_length=1000, verbose_name="Ссылка на фото")
+    caption = models.CharField(max_length=255, blank=True, verbose_name="Подпись")
+    order = models.PositiveSmallIntegerField(default=0, verbose_name="Порядок")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Добавлено")
+
+    class Meta:
+        verbose_name = "Фото потока курса"
+        verbose_name_plural = "Фото потоков курсов"
+        ordering = ["order", "created_at"]
+
+    def __str__(self):
+        return self.caption or f"Фото {self.session}"

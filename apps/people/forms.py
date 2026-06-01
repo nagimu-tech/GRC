@@ -2,7 +2,7 @@ from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models import Q
 from apps.accounts.models import Company
-from .models import Person, CompanyPerson
+from .models import Person, CompanyPerson, CompanyPersonPhoto
 
 
 class PersonForm(forms.ModelForm):
@@ -138,3 +138,19 @@ class PersonMergeForm(forms.Form):
         label="Привязать к существующему человеку",
         help_text="CompanyPerson будет перепривязан к выбранному Person.",
     )
+
+
+class CompanyPersonPhotoForm(forms.ModelForm):
+    class Meta:
+        model = CompanyPersonPhoto
+        fields = ["image_url", "caption", "order"]
+        labels = {
+            "image_url": "Ссылка на фото",
+            "caption": "Подпись",
+            "order": "Порядок",
+        }
+        widgets = {
+            "image_url": forms.URLInput(attrs={
+                "placeholder": "https://cdn.example.com/photo.jpg",
+            }),
+        }

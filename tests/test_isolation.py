@@ -8,8 +8,8 @@ from django.urls import reverse
 from datetime import date
 
 from apps.accounts.models import Company, User
-from apps.catalog.models import Course, CourseSession
-from apps.people.models import Person, CompanyPerson
+from apps.catalog.models import Course, CourseSession, CourseSessionPhoto
+from apps.people.models import Person, CompanyPerson, CompanyPersonPhoto
 from apps.participation.models import Participation
 from apps.calling.models import Event, CallRecord
 
@@ -119,6 +119,21 @@ class TenantIsolationPeopleTest(TestCase):
         self.cp_a.refresh_from_db()
         self.assertIsNone(self.cp_a.company)
 
+    def test_person_photo_limit_is_five(self):
+        """В карточку человека нельзя добавить больше пяти внешних фото-ссылок."""
+        self.client.force_login(self.admin_a)
+        for index in range(5):
+            CompanyPersonPhoto.objects.create(
+                company_person=self.cp_a,
+                image_url=f"https://example.com/person-{index}.jpg",
+            )
+        response = self.client.post(
+            reverse("people:companyperson_photo_add", args=[self.cp_a.pk]),
+            {"image_url": "https://example.com/extra.jpg", "caption": "extra", "order": "9"},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.cp_a.photos.count(), 5)
+
 
 class TenantIsolationCallingTest(TestCase):
     def setUp(self):
@@ -143,6 +158,12 @@ class TenantIsolationCallingTest(TestCase):
         self.client.force_login(self.admin_a)
         response = self.client.get(reverse("calling:session", args=[self.event_b.pk]))
         self.assertIn(response.status_code, [403, 404])
+
+    def test_event_title_links_to_calling_session(self):
+        """В списке прозвонов заголовок ведёт в начало прозвона."""
+        self.client.force_login(self.admin_a)
+        response = self.client.get(reverse("calling:event_list"))
+        self.assertContains(response, reverse("calling:session", args=[self.event_a.pk]))
 
 
 class SystemAdminAccessTest(TestCase):
@@ -290,3 +311,32 @@ class CallPoolFillTest(TestCase):
             CallRecord.objects.filter(event=self.event).values_list("company_person_id", flat=True)
         )
         self.assertEqual(people_ids, {self.alumni.pk})
+
+
+class CourseSessionPhotoLimitTest(TestCase):
+    def setUp(self):
+        self.company = make_company("Компания")
+        self.admin = make_admin("admin", self.company)
+        self.course = Course.objects.create(name="Курс", company=self.company)
+        self.session = CourseSession.objects.create(
+            company=self.company,
+            course=self.course,
+            label="Поток",
+            start_date=date(2026, 5, 1),
+            end_date=date(2026, 5, 3),
+        )
+
+    def test_session_photo_limit_is_thirty(self):
+        """В поток курса нельзя добавить больше тридцати внешних фото-ссылок."""
+        self.client.force_login(self.admin)
+        for index in range(30):
+            CourseSessionPhoto.objects.create(
+                session=self.session,
+                image_url=f"https://example.com/session-{index}.jpg",
+            )
+        response = self.client.post(
+            reverse("catalog:session_photo_add", args=[self.session.pk]),
+            {"image_url": "https://example.com/extra.jpg", "caption": "extra", "order": "31"},
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertEqual(self.session.photos.count(), 30)

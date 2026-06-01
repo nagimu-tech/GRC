@@ -1,5 +1,5 @@
 from django import forms
-from .models import Position, Course, CourseSession
+from .models import Position, Course, CourseSession, CourseSessionPhoto
 
 
 class PositionForm(forms.ModelForm):
@@ -55,3 +55,19 @@ class CourseSessionForm(forms.ModelForm):
             self.fields["course"].queryset = Course.objects.filter(
                 company=company, is_active=True
             )
+
+
+class CourseSessionPhotoForm(forms.ModelForm):
+    class Meta:
+        model = CourseSessionPhoto
+        fields = ["image_url", "caption", "order"]
+        labels = {
+            "image_url": "Ссылка на фото",
+            "caption": "Подпись",
+            "order": "Порядок",
+        }
+        widgets = {
+            "image_url": forms.URLInput(attrs={
+                "placeholder": "https://cdn.example.com/session-photo.jpg",
+            }),
+        }

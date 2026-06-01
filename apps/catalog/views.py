@@ -1,15 +1,16 @@
 from django.contrib import messages
 from django.core.exceptions import PermissionDenied
+from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse_lazy
-from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView, DetailView, View
 
 from apps.core.mixins import (
     TenantScopedMixin, TenantObjectMixin,
     SystemAdminRequiredMixin, CompanyAdminRequiredMixin,
 )
-from .forms import PositionForm, CourseForm, CourseSessionForm
-from .models import Position, Course, CourseSession
+from .forms import PositionForm, CourseForm, CourseSessionForm, CourseSessionPhotoForm
+from .models import Position, Course, CourseSession, CourseSessionPhoto
 
 
 # --- Должности (глобальный справочник, управляет сисадмин) ---
@@ -114,6 +115,9 @@ class SessionDetailView(TenantScopedMixin, TenantObjectMixin, CompanyAdminRequir
             .order_by("role", "company_person__person__last_name")
         )
         ctx["participations"] = participations
+        ctx["photos"] = self.object.photos.all()
+        ctx["photo_form"] = CourseSessionPhotoForm()
+        ctx["photo_limit"] = 30
         return ctx
 
 
@@ -164,3 +168,45 @@ class SessionDeleteView(TenantScopedMixin, TenantObjectMixin, CompanyAdminRequir
     def form_valid(self, form):
         messages.success(self.request, "Запуск удалён.")
         return super().form_valid(form)
+
+
+class SessionPhotoAddView(TenantObjectMixin, CompanyAdminRequiredMixin, View):
+    limit = 30
+
+    def get_queryset(self):
+        if self.request.user.is_system_admin:
+            return CourseSession.objects.all()
+        return CourseSession.objects.filter(company=self.request.company)
+
+    def get_object(self):
+        return get_object_or_404(self.get_queryset(), pk=self.kwargs["pk"])
+
+    def post(self, request, pk):
+        session = self.get_object()
+        if session.photos.count() >= self.limit:
+            messages.error(request, f"Для потока можно добавить не больше {self.limit} фото.")
+            return redirect("catalog:session_detail", pk=session.pk)
+
+        form = CourseSessionPhotoForm(request.POST)
+        if form.is_valid():
+            photo = form.save(commit=False)
+            photo.session = session
+            photo.save()
+            messages.success(request, "Фото потока добавлено.")
+        else:
+            messages.error(request, "Не удалось добавить фото. Проверьте ссылку.")
+        return redirect("catalog:session_detail", pk=session.pk)
+
+
+class SessionPhotoDeleteView(CompanyAdminRequiredMixin, View):
+    def post(self, request, pk):
+        photo = get_object_or_404(
+            CourseSessionPhoto.objects.select_related("session"),
+            pk=pk,
+        )
+        session = photo.session
+        if not request.user.is_system_admin and session.company_id != request.company.pk:
+            raise Http404
+        photo.delete()
+        messages.success(request, "Фото потока удалено.")
+        return redirect("catalog:session_detail", pk=session.pk)

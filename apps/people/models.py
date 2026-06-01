@@ -95,3 +95,25 @@ class CompanyPerson(TenantModel):
     @property
     def birth_date(self):
         return self.person.birth_date
+
+
+class CompanyPersonPhoto(models.Model):
+    """Фото человека: файл хранится во внешнем хранилище, в БД только ссылка."""
+    company_person = models.ForeignKey(
+        CompanyPerson,
+        on_delete=models.CASCADE,
+        related_name="photos",
+        verbose_name="Карточка человека",
+    )
+    image_url = models.URLField(max_length=1000, verbose_name="Ссылка на фото")
+    caption = models.CharField(max_length=255, blank=True, verbose_name="Подпись")
+    order = models.PositiveSmallIntegerField(default=0, verbose_name="Порядок")
+    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Добавлено")
+
+    class Meta:
+        verbose_name = "Фото человека"
+        verbose_name_plural = "Фото людей"
+        ordering = ["order", "created_at"]
+
+    def __str__(self):
+        return self.caption or f"Фото {self.company_person.full_name}"

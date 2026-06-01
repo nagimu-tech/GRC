@@ -11,6 +11,8 @@ urlpatterns = [
     path("<int:pk>/edit/", views.CompanyPersonUpdateView.as_view(), name="companyperson_update"),
     path("<int:pk>/delete/", views.CompanyPersonDeleteView.as_view(), name="companyperson_delete"),
     path("<int:pk>/merge/", views.CompanyPersonMergeView.as_view(), name="companyperson_merge"),
+    path("<int:pk>/photos/add/", views.CompanyPersonPhotoAddView.as_view(), name="companyperson_photo_add"),
+    path("photos/<int:pk>/delete/", views.CompanyPersonPhotoDeleteView.as_view(), name="companyperson_photo_delete"),
 
     # Только для системного администратора
     path("global/", views.GlobalPersonListView.as_view(), name="person_list"),

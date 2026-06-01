@@ -14,7 +14,9 @@
         <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div class="flex-1 min-w-0">
                 <div class="flex items-center gap-2">
-                    <h2 class="font-semibold text-gray-800">{{ event.title }}</h2>
+                    <h2 class="font-semibold text-gray-800">
+                        <a href="{% url 'calling:session' event.pk %}" class="hover:underline">{{ event.title }}</a>
+                    </h2>
                     {% if event.is_active %}
                     <span class="px-2 py-0.5 text-xs rounded-full bg-orange-100 text-orange-800">Активна</span>
                     {% else %}

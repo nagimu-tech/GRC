@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Person, CompanyPerson
+from .models import Person, CompanyPerson, CompanyPersonPhoto
 
 
 @admin.register(Person)
@@ -15,3 +15,10 @@ class CompanyPersonAdmin(admin.ModelAdmin):
     list_filter = ["company", "is_active", "consent_stored", "consent_contact"]
     search_fields = ["person__last_name", "person__first_name", "person__phone"]
     raw_id_fields = ["person"]
+
+
+@admin.register(CompanyPersonPhoto)
+class CompanyPersonPhotoAdmin(admin.ModelAdmin):
+    list_display = ["company_person", "caption", "order", "created_at"]
+    search_fields = ["company_person__person__last_name", "company_person__person__first_name", "caption"]
+    raw_id_fields = ["company_person"]

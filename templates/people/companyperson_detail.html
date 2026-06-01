@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block title %}{{ cp.full_name }}{% endblock %}
 {% block content %}
-<div class="flex items-center justify-between mb-6">
-    <div class="flex items-center">
+<div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
+    <div class="flex items-center min-w-0">
         <a href="{% url 'people:companyperson_list' %}" class="text-gray-400 hover:text-gray-600 mr-3">←</a>
-        <div>
+        <div class="min-w-0">
             <h1 class="text-2xl font-bold text-gray-800">{{ cp.full_name }}</h1>
             <div class="flex flex-wrap gap-2 mt-1 text-sm text-gray-500">
                 {% if cp.birth_date %}<span>{{ cp.birth_date|date:"d.m.Y" }}</span>{% endif %}
@@ -14,7 +14,7 @@
         </div>
     </div>
     {% if user.is_company_admin or user.is_system_admin %}
-    <div class="flex gap-2">
+    <div class="flex flex-wrap gap-2">
         <a href="{% url 'participation:create' %}?person={{ cp.pk }}" class="btn btn-secondary text-sm">+ Участие</a>
         <a href="{% url 'people:companyperson_update' cp.pk %}" class="btn btn-primary text-sm">Изменить</a>
     </div>
@@ -49,6 +49,60 @@
                 <p class="text-xs text-gray-400 mb-1">Заметки</p>
                 <p class="text-sm text-gray-700">{{ cp.notes }}</p>
             </div>
+            {% endif %}
+        </div>
+
+        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
+            <div class="flex items-center justify-between gap-3 mb-3">
+                <h2 class="font-semibold text-gray-700">Фото ({{ photos|length }}/{{ photo_limit }})</h2>
+            </div>
+
+            {% if photos %}
+            <div class="grid grid-cols-2 gap-3 mb-4">
+                {% for photo in photos %}
+                <figure class="rounded-lg overflow-hidden border border-gray-100 bg-gray-50">
+                    <a href="{{ photo.image_url }}" target="_blank" rel="noopener">
+                        <img src="{{ photo.image_url }}" alt="{{ photo.caption|default:cp.full_name }}" class="w-full aspect-square object-cover">
+                    </a>
+                    <figcaption class="p-2 text-xs text-gray-500">
+                        <div class="truncate">{{ photo.caption|default:"Фото" }}</div>
+                        {% if user.is_company_admin or user.is_system_admin %}
+                        <form method="post" action="{% url 'people:companyperson_photo_delete' photo.pk %}" class="mt-1">
+                            {% csrf_token %}
+                            <button type="submit" class="text-red-500 hover:underline">Удалить</button>
+                        </form>
+                        {% endif %}
+                    </figcaption>
+                </figure>
+                {% endfor %}
+            </div>
+            {% else %}
+            <p class="text-sm text-gray-400 mb-4">Фото пока не добавлены.</p>
+            {% endif %}
+
+            {% if user.is_company_admin or user.is_system_admin %}
+                {% if photos|length < photo_limit %}
+                <form method="post" action="{% url 'people:companyperson_photo_add' cp.pk %}" class="space-y-3">
+                    {% csrf_token %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ photo_form.image_url.id_for_label }}">{{ photo_form.image_url.label }}</label>
+                        {{ photo_form.image_url }}
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ photo_form.caption.id_for_label }}">{{ photo_form.caption.label }}</label>
+                            {{ photo_form.caption }}
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1" for="{{ photo_form.order.id_for_label }}">{{ photo_form.order.label }}</label>
+                            {{ photo_form.order }}
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-secondary text-sm">Добавить фото</button>
+                </form>
+                {% else %}
+                <p class="text-sm text-gray-400">Достигнут лимит фотографий.</p>
+                {% endif %}
             {% endif %}
         </div>
 
