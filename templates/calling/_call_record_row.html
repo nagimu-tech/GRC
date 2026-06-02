@@ -25,13 +25,17 @@
 
             <!-- Захват записи (если ещё не захвачена) -->
             {% if record.is_available %}
-            <button
+            <form method="post"
+                action="{% url 'calling:claim_record' record.pk %}"
                 hx-post="{% url 'calling:claim_record' record.pk %}"
                 hx-target="#record-{{ record.pk }}"
                 hx-swap="outerHTML"
-                class="btn btn-primary text-xs flex-shrink-0">
-                Взять
-            </button>
+                class="flex-shrink-0">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary text-xs">
+                    Взять в работу
+                </button>
+            </form>
             {% elif record.claimed_by %}
             <span class="text-xs text-gray-400 flex-shrink-0">
                 {% if record.claimed_by == request.user %}
@@ -51,7 +55,9 @@
 
         <!-- Форма обновления статуса (если запись захвачена текущим пользователем или admin) -->
         {% if record.claimed_by == request.user or request.user.is_company_admin or request.user.is_system_admin %}
-        <form hx-post="{% url 'calling:update_record' record.pk %}"
+        <form method="post"
+              action="{% url 'calling:update_record' record.pk %}"
+              hx-post="{% url 'calling:update_record' record.pk %}"
               hx-target="#record-{{ record.pk }}"
               hx-swap="outerHTML"
               class="mt-3 space-y-2">
@@ -63,7 +69,7 @@
                     <input type="radio" name="status" value="{{ status_code }}"
                            {% if record.status == status_code %}checked{% endif %}
                            class="sr-only peer"
-                           onchange="this.form.dispatchEvent(new Event('submit', {bubbles:true}))">
+                           onchange="this.form.requestSubmit()">
                     <span class="peer-checked:ring-2 peer-checked:ring-offset-1 peer-checked:ring-indigo-400 px-2.5 py-1 text-xs rounded-full cursor-pointer block
                         {% if status_code == 'NOT_CALLED' %}bg-gray-100 text-gray-600 peer-checked:bg-gray-200
                         {% elif status_code == 'WILL_COME' %}bg-green-100 text-green-800 peer-checked:bg-green-200

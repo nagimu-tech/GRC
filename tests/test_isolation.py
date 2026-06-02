@@ -165,6 +165,25 @@ class TenantIsolationCallingTest(TestCase):
         response = self.client.get(reverse("calling:event_list"))
         self.assertContains(response, reverse("calling:session", args=[self.event_a.pk]))
 
+    def test_claim_record_without_htmx_redirects_and_claims(self):
+        """Кнопка захвата работает как обычная форма, даже если HTMX не загрузился."""
+        person = CompanyPerson.objects.create(
+            company=self.company_a,
+            person=make_person("Звонков", "Павел"),
+        )
+        record = CallRecord.objects.create(
+            company=self.company_a,
+            event=self.event_a,
+            company_person=person,
+        )
+        self.client.force_login(self.admin_a)
+
+        response = self.client.post(reverse("calling:claim_record", args=[record.pk]))
+
+        self.assertRedirects(response, reverse("calling:session", args=[self.event_a.pk]))
+        record.refresh_from_db()
+        self.assertEqual(record.claimed_by, self.admin_a)
+
 
 class SystemAdminAccessTest(TestCase):
     def setUp(self):

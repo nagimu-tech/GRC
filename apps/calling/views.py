@@ -1,3 +1,5 @@
+from urllib.parse import urlencode
+
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.core.exceptions import PermissionDenied
@@ -26,6 +28,10 @@ def get_event_for_pool_action(request, pk):
     if not request.user.is_system_admin and event.company_id != request.company.pk:
         raise Http404
     return event
+
+
+def is_htmx(request):
+    return request.headers.get("HX-Request") == "true"
 
 
 class EventListView(TenantScopedMixin, LoginRequiredMixin, ListView):
@@ -181,6 +187,14 @@ class CallingSessionView(LoginRequiredMixin, DetailView):
         ctx["update_form"] = CallRecordUpdateForm()
         ctx["can_manage_call_pool"] = can_manage_call_pool(user)
         ctx["add_record_form"] = CallRecordPersonForm(company=event.company, event=event)
+        base_filter_params = {}
+        if search:
+            base_filter_params["q"] = search
+        if course_filter:
+            base_filter_params["course"] = course_filter
+        mine_filter_params = {**base_filter_params, "mine": "1"}
+        ctx["available_records_url"] = f"?{urlencode(base_filter_params)}" if base_filter_params else "?"
+        ctx["mine_records_url"] = f"?{urlencode(mine_filter_params)}"
         return ctx
 
 
@@ -209,6 +223,9 @@ class ClaimCallRecordView(LoginRequiredMixin, View):
         claimed = CallRecord.claim(event, record.company_person, user)
         if claimed is None:
             record.refresh_from_db()
+
+        if not is_htmx(request):
+            return redirect("calling:session", pk=event.pk)
 
         return render(request, "calling/_call_record_row.html", {
             "record": record if claimed is None else claimed,
@@ -245,6 +262,9 @@ class UpdateCallRecordView(LoginRequiredMixin, View):
             updated = form.save(commit=False)
             updated.called_by = user
             updated.save(update_fields=["status", "comment", "called_by", "updated_at"])
+
+        if not is_htmx(request):
+            return redirect("calling:session", pk=event.pk)
 
         record.refresh_from_db()
         return render(request, "calling/_call_record_row.html", {
