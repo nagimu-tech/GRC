@@ -88,28 +88,33 @@
     </aside>
 
     <div class="grc-mobile-top">
-        <a class="grc-brand grc-glass" href="{% url 'accounts:dashboard' %}">
-            <span class="grc-logo">
-                <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 3v3M12 18v3M3 12h3M18 12h3"></path></svg>
-            </span>
-            <span class="grc-brand-title">GRC</span>
-        </a>
-    </div>
+        <details class="grc-mobile-menu-shell">
+            <summary class="grc-brand grc-glass grc-mobile-menu-button">
+                <span class="grc-logo">
+                    <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 3v3M12 18v3M3 12h3M18 12h3"></path></svg>
+                </span>
+                <span class="grc-brand-title">GRC</span>
+                <svg class="grc-mobile-menu-chevron grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
+            </summary>
 
-    <nav class="grc-mobile-nav grc-glass" aria-label="Основная навигация">
-        <a href="{% url 'accounts:dashboard' %}" class="{% if request.resolver_match.app_name == 'accounts' and request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}">Обзор</a>
-        <a href="{% url 'people:companyperson_list' %}" class="{% if request.resolver_match.app_name == 'people' and request.resolver_match.url_name != 'merge_candidates' %}is-active{% endif %}">Люди</a>
-        <a href="{% url 'catalog:course_list' %}" class="{% if request.resolver_match.app_name == 'catalog' and 'position' not in request.resolver_match.url_name %}is-active{% endif %}">Курсы</a>
-        <a href="{% url 'calling:event_list' %}" class="{% if request.resolver_match.app_name == 'calling' %}is-active{% endif %}">Прозвон</a>
-        {% if user.is_system_admin or user.is_company_admin %}
-            <a href="{% url 'catalog:position_list' %}" class="{% if request.resolver_match.app_name == 'catalog' and 'position' in request.resolver_match.url_name %}is-active{% endif %}">Должности</a>
-            <a href="{% url 'accounts:user_list' %}" class="{% if request.resolver_match.app_name == 'accounts' and 'user' in request.resolver_match.url_name %}is-active{% endif %}">Пользователи</a>
-        {% endif %}
-        {% if user.is_system_admin %}
-            <a href="{% url 'accounts:company_list' %}" class="{% if request.resolver_match.app_name == 'accounts' and 'company' in request.resolver_match.url_name %}is-active{% endif %}">Компании</a>
-            <a href="{% url 'people:merge_candidates' %}" class="{% if request.resolver_match.app_name == 'people' and request.resolver_match.url_name == 'merge_candidates' %}is-active{% endif %}">Сопоставление</a>
-        {% endif %}
-    </nav>
+            <div class="grc-mobile-menu grc-glass">
+                <nav class="grc-mobile-menu-nav" aria-label="Основная навигация">
+                    <a href="{% url 'accounts:dashboard' %}" class="{% if request.resolver_match.app_name == 'accounts' and request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}">Обзор</a>
+                    <a href="{% url 'people:companyperson_list' %}" class="{% if request.resolver_match.app_name == 'people' and request.resolver_match.url_name != 'merge_candidates' %}is-active{% endif %}">Люди</a>
+                    <a href="{% url 'catalog:course_list' %}" class="{% if request.resolver_match.app_name == 'catalog' and 'position' not in request.resolver_match.url_name %}is-active{% endif %}">Курсы</a>
+                    <a href="{% url 'calling:event_list' %}" class="{% if request.resolver_match.app_name == 'calling' %}is-active{% endif %}">Прозвон</a>
+                    {% if user.is_system_admin or user.is_company_admin %}
+                        <a href="{% url 'catalog:position_list' %}" class="{% if request.resolver_match.app_name == 'catalog' and 'position' in request.resolver_match.url_name %}is-active{% endif %}">Должности</a>
+                        <a href="{% url 'accounts:user_list' %}" class="{% if request.resolver_match.app_name == 'accounts' and 'user' in request.resolver_match.url_name %}is-active{% endif %}">Пользователи</a>
+                    {% endif %}
+                    {% if user.is_system_admin %}
+                        <a href="{% url 'accounts:company_list' %}" class="{% if request.resolver_match.app_name == 'accounts' and 'company' in request.resolver_match.url_name %}is-active{% endif %}">Компании</a>
+                        <a href="{% url 'people:merge_candidates' %}" class="{% if request.resolver_match.app_name == 'people' and request.resolver_match.url_name == 'merge_candidates' %}is-active{% endif %}">Сопоставление</a>
+                    {% endif %}
+                </nav>
+            </div>
+        </details>
+    </div>
 
     <header class="grc-topbar">
         <form class="grc-search grc-glass" method="get" action="{% url 'people:companyperson_list' %}">
