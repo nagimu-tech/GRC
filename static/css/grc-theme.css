@@ -772,6 +772,14 @@ textarea:focus {
         list-style: none;
     }
 
+    .grc-mobile-menu-button:focus {
+        outline: 0;
+    }
+
+    .grc-mobile-menu-button:focus-visible {
+        box-shadow: 0 0 0 4px var(--grc-accent-soft), var(--grc-shadow);
+    }
+
     .grc-mobile-menu-button::marker,
     .grc-mobile-menu-button::-webkit-details-marker {
         display: none;
@@ -794,9 +802,9 @@ textarea:focus {
         top: calc(100% + 8px);
         left: 0;
         display: none;
-        width: 100%;
+        width: min(100%, 360px);
         max-width: 100%;
-        padding: 10px;
+        padding: 12px;
     }
 
     .grc-mobile-menu-shell[open] .grc-mobile-menu {
@@ -804,29 +812,44 @@ textarea:focus {
     }
 
     .grc-mobile-menu-nav {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
-    }
-
-    .grc-mobile-menu-nav a {
         display: flex;
-        min-height: 42px;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid var(--grc-border);
-        border-radius: 12px;
-        padding: 0 10px;
-        color: var(--grc-text-dim);
-        font-size: 13px;
-        font-weight: 800;
-        text-decoration: none;
+        flex-direction: column;
+        gap: 6px;
     }
 
-    .grc-mobile-menu-nav a.is-active {
+    .grc-mobile-menu-section {
+        margin: 10px 8px 4px;
+        color: var(--grc-text-muted);
+        font-size: 11px;
+        font-weight: 800;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .grc-mobile-menu-link {
+        display: flex;
+        min-height: 44px;
+        align-items: center;
+        gap: 12px;
+        border: 1px solid transparent;
+        border-radius: 13px;
+        padding: 0 12px;
+        color: var(--grc-text-dim);
+        font-size: 14px;
+        font-weight: 750;
+        text-decoration: none;
+        transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+    }
+
+    .grc-mobile-menu-link:hover,
+    .grc-mobile-menu-link.is-active {
         border-color: var(--grc-border-strong);
         color: var(--grc-text);
         background: var(--grc-accent-soft);
+    }
+
+    .grc-mobile-menu-link.is-active .grc-icon {
+        color: var(--grc-accent);
     }
 
     .grc-main {

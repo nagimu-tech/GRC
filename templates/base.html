@@ -11,7 +11,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="{% static 'vendor/htmx.min.js' %}"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <link rel="stylesheet" href="{% static 'css/grc-theme.css' %}">
+    <link rel="stylesheet" href="{% static 'css/grc-theme.css' %}?v=20260602-menu2">
     <meta name="htmx-config" content='{"defaultSwapStyle":"outerHTML"}'>
     {% block extra_head %}{% endblock %}
 </head>
@@ -99,17 +99,42 @@
 
             <div class="grc-mobile-menu grc-glass">
                 <nav class="grc-mobile-menu-nav" aria-label="Основная навигация">
-                    <a href="{% url 'accounts:dashboard' %}" class="{% if request.resolver_match.app_name == 'accounts' and request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}">Обзор</a>
-                    <a href="{% url 'people:companyperson_list' %}" class="{% if request.resolver_match.app_name == 'people' and request.resolver_match.url_name != 'merge_candidates' %}is-active{% endif %}">Люди</a>
-                    <a href="{% url 'catalog:course_list' %}" class="{% if request.resolver_match.app_name == 'catalog' and 'position' not in request.resolver_match.url_name %}is-active{% endif %}">Курсы</a>
-                    <a href="{% url 'calling:event_list' %}" class="{% if request.resolver_match.app_name == 'calling' %}is-active{% endif %}">Прозвон</a>
+                    <a href="{% url 'accounts:dashboard' %}" class="grc-mobile-menu-link {% if request.resolver_match.app_name == 'accounts' and request.resolver_match.url_name == 'dashboard' %}is-active{% endif %}">
+                        <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="3" width="7" height="7" rx="1.5"></rect><rect x="14" y="14" width="7" height="7" rx="1.5"></rect><rect x="3" y="14" width="7" height="7" rx="1.5"></rect></svg>
+                        Обзор
+                    </a>
+                    <a href="{% url 'people:companyperson_list' %}" class="grc-mobile-menu-link {% if request.resolver_match.app_name == 'people' and request.resolver_match.url_name != 'merge_candidates' %}is-active{% endif %}">
+                        <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.2"></circle><path d="M3.5 19a5.5 5.5 0 0 1 11 0"></path><path d="M16 5.2a3 3 0 0 1 0 5.6"></path><path d="M17.5 19a5 5 0 0 0-3-4.6"></path></svg>
+                        Люди
+                    </a>
+                    <a href="{% url 'catalog:course_list' %}" class="grc-mobile-menu-link {% if request.resolver_match.app_name == 'catalog' and 'position' not in request.resolver_match.url_name %}is-active{% endif %}">
+                        <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5z"></path><path d="M5 19.5A1.5 1.5 0 0 0 6.5 21H19"></path></svg>
+                        Курсы
+                    </a>
+                    <a href="{% url 'calling:event_list' %}" class="grc-mobile-menu-link {% if request.resolver_match.app_name == 'calling' %}is-active{% endif %}">
+                        <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 13v-1a8 8 0 0 1 16 0v1"></path><rect x="3" y="13" width="3.5" height="6" rx="1.5"></rect><rect x="17.5" y="13" width="3.5" height="6" rx="1.5"></rect><path d="M20 19v.5a3 3 0 0 1-3 3H13"></path></svg>
+                        Прозвон
+                    </a>
                     {% if user.is_system_admin or user.is_company_admin %}
-                        <a href="{% url 'catalog:position_list' %}" class="{% if request.resolver_match.app_name == 'catalog' and 'position' in request.resolver_match.url_name %}is-active{% endif %}">Должности</a>
-                        <a href="{% url 'accounts:user_list' %}" class="{% if request.resolver_match.app_name == 'accounts' and 'user' in request.resolver_match.url_name %}is-active{% endif %}">Пользователи</a>
+                        <div class="grc-mobile-menu-section">Управление</div>
+                        <a href="{% url 'catalog:position_list' %}" class="grc-mobile-menu-link {% if request.resolver_match.app_name == 'catalog' and 'position' in request.resolver_match.url_name %}is-active{% endif %}">
+                            <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V4"></path><path d="M4 20h16"></path><path d="M8 16v-3M12.5 16V8M17 16v-6"></path></svg>
+                            Должности
+                        </a>
+                        <a href="{% url 'accounts:user_list' %}" class="grc-mobile-menu-link {% if request.resolver_match.app_name == 'accounts' and 'user' in request.resolver_match.url_name %}is-active{% endif %}">
+                            <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="3.5"></circle><path d="M5 20a7 7 0 0 1 14 0"></path></svg>
+                            Пользователи
+                        </a>
                     {% endif %}
                     {% if user.is_system_admin %}
-                        <a href="{% url 'accounts:company_list' %}" class="{% if request.resolver_match.app_name == 'accounts' and 'company' in request.resolver_match.url_name %}is-active{% endif %}">Компании</a>
-                        <a href="{% url 'people:merge_candidates' %}" class="{% if request.resolver_match.app_name == 'people' and request.resolver_match.url_name == 'merge_candidates' %}is-active{% endif %}">Сопоставление</a>
+                        <a href="{% url 'accounts:company_list' %}" class="grc-mobile-menu-link {% if request.resolver_match.app_name == 'accounts' and 'company' in request.resolver_match.url_name %}is-active{% endif %}">
+                            <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V5a2 2 0 0 1 2-2h8v18"></path><path d="M14 8h4a2 2 0 0 1 2 2v11"></path><path d="M8 7h2M8 11h2M8 15h2M17 12h1M17 16h1"></path></svg>
+                            Компании
+                        </a>
+                        <a href="{% url 'people:merge_candidates' %}" class="grc-mobile-menu-link {% if request.resolver_match.app_name == 'people' and request.resolver_match.url_name == 'merge_candidates' %}is-active{% endif %}">
+                            <svg class="grc-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 7h10v10H7z"></path><path d="M3 12h4M17 12h4M12 3v4M12 17v4"></path></svg>
+                            Сопоставление
+                        </a>
                     {% endif %}
                 </nav>
             </div>
